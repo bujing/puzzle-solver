@@ -9,16 +9,15 @@
       background-color: #e8e8e8;
     }
 
-    .grid tr:nth-child(3),
-    .grid tr:nth-child(6) {
+    .grid tr:nth-child(3n):not(:last-child) {
       border-bottom: 2px solid #333;
     }
-    .grid td:nth-child(3),
-    .grid td:nth-child(6) {
+    .grid td:nth-child(3n):not(:last-child) {
       border-right: 2px solid #333;
     }
 
     .cell {
+      padding: 0;
       position: relative;
     }
     .cell input {
@@ -42,7 +41,7 @@
     }
 
     .btn {
-      width: 490px;
+      width: 472px;
     }
     .btn button {
       display: block;
