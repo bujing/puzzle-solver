@@ -18,6 +18,12 @@
     .horizontal td {
       vertical-align: bottom;
     }
+    .horizontal td:nth-child(5n):not(:last-child) {
+      border-right: 2px solid transparent;
+    }
+    .vertical tr:nth-child(5n):not(:last-child) {
+      border-bottom: 2px solid transparent;
+    }
     .vertical td {
       display: flex;
       justify-content: flex-end;
@@ -49,6 +55,9 @@
 
     .fill {
       background-color: #333;
+    }
+    .empty {
+      background-color: #ccc;
     }
 
     .btn button {
