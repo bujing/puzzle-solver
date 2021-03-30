@@ -112,31 +112,38 @@ class Nonograms {
         spaces[i].push(side ? start : start + 1)
       }
     }
-    // 候选集
+    // 候选数
     const candidates = []
-    // 基数
-    const cardinal = [1]
-    for (let i = spaces.length - 1; i > 0; i--) {
-      cardinal.unshift(cardinal[0] * spaces[i].length)
-    }
-    // 当前下标
-    const current = Array(spaces.length).fill(0)
-    // 遍历次数
-    const count = spaces.reduce((acc, cur) => acc * cur.length, 1)
-    for (let i = 0; i < count; i++) {
-      if (i) {
-        const plus = cardinal.map(v => i % v)
-        current.forEach((v, j) => {
-          if (plus[j] === 0) {
-            current[j] = ++current[j] % spaces[j].length
-          }
-        })
+    // 遍历函数集
+    const funs = [
+      (...candidate) => candidates.push(candidate.map((v, i) => spaces[i][v]))
+    ]
+    let loop = 0
+    while (loop < spaces.length) {
+      let fun
+      if (loop === 0) {
+        fun = (...candidate) => {
+          const k = emptyCount - candidate.map((v, i) => spaces[i][v]).reduce((acc, cur) => acc + cur)
+          funs[0](...candidate, k)
+        }
+      } else {
+        fun = (loop => (...candidate) => {
+          const i = candidate.reduce((acc, cur) => acc + cur, 0)
+          this.#foreach(0, spaces[loop].length - i, j => {
+            funs[loop](...candidate, j)
+          })
+        })(loop)
       }
-      const spaceNum = current.map((v, i) => spaces[i][v])
-      if (spaceNum.reduce((acc, cur) => acc + cur) === emptyCount) {
-        candidates.push(spaceNum)
-      }
+      funs.push(fun)
+      loop++
     }
+    funs[funs.length - 1]()
     return candidates
+  }
+
+  #foreach (start, end, fn) {
+    for (let i = start; i < end; i++) {
+      fn(i)
+    }
   }
 }
