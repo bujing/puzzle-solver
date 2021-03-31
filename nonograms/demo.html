@@ -40,6 +40,7 @@
       font-size: 12px;
       line-height: 16px;
       padding: 0;
+      position: relative;
       text-align: center;
     }
     .cell input {
@@ -58,7 +59,13 @@
       background-color: #333;
     }
     .empty {
-      background-color: #ccc;
+      color: #666;
+      font-style: normal;
+      left: 0;
+      line-height: 14px;
+      position: absolute;
+      top: 0;
+      width: 16px;
     }
 
     .btn button {
@@ -140,7 +147,8 @@
                   <tr key={i}>
                     {r.map((c, j) => (
                       <td key={j} className="cell">
-                        <input className={grid[i][j] === 1 ? 'fill' : (grid[i][j] === -1 ? 'empty' : '')} readOnly />
+                        <input className={grid[i][j] === 1 ? 'fill' : ''} readOnly />
+                        {grid[i][j] === -1 && <i className="empty">×</i>}
                       </td>
                     ))}
                   </tr>
