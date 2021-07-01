@@ -149,7 +149,7 @@
     const { Fragment, useState, useEffect, useCallback } = React
 
     const App = () => {
-      const [numbers, setNumbers] = useState(nonograms[8])
+      const [numbers, setNumbers] = useState(nonograms[7])
       const [grid, setGrid] = useState(() => {
         return Array(numbers[0].length).fill('').map(() => Array(numbers[1].length).fill(0))
       })
@@ -236,15 +236,19 @@
                 </fieldset>
               </Fragment>
             )}
-            <div className="btn">
-              {numbers[0].length && numbers[1].length ? (
-                <button className="button-black" onClick={solve}>解题</button>
-              ) : (
-                <button className="button-black" onClick={submit}>确定</button>
-              )}
-              <button className="button-white" onClick={reset}>重置</button>
-            </div>
           </div>
+          <div></div>
+
+          <div></div>
+          <div className="btn">
+            {numbers[0].length && numbers[1].length ? (
+              <button className="button-black" onClick={solve}>解题</button>
+            ) : (
+              <button className="button-black" onClick={submit}>确定</button>
+            )}
+            <button className="button-white" onClick={reset}>重置</button>
+          </div>
+          <div></div>
         </div>
       )
     }
