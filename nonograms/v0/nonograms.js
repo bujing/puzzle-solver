@@ -14,7 +14,7 @@ class Nonograms {
 
     this.duration = Date.now()
     this.solve()
-    this.duration = Date.now() - this.duration    
+    this.duration = Date.now() - this.duration
   }
 
   solve () {
