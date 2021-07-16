@@ -153,6 +153,9 @@
   <script type="text/babel">
     const { Fragment, useState, useEffect, useCallback } = React
 
+    let nono = null
+    const pause = false
+
     const App = () => {
       const [numbers, setNumbers] = useState(nonograms[10])
       const [grid, setGrid] = useState(() => {
@@ -172,15 +175,21 @@
       }, [rows, columns])
 
       const solve = useCallback(() => {
-        const res = new Nonograms(numbers, 100000)
-        setGrid(res.latest)
-        const t = window.setInterval(() => {
-          setGrid(res.latest)
-          if (res.solved) {
-            window.clearInterval(t)
-            console.log(res)
-          }
-        }, 100)
+        if (!nono) {
+          nono = new Nonograms(numbers, 10000, pause)
+        } else {
+          nono.solve(1, pause)
+        }
+        setGrid(nono.latest)
+        if (!pause) {
+          const t = window.setInterval(() => {
+            setGrid(nono.latest)
+            if (nono.solved) {
+              window.clearInterval(t)
+              console.log(nono)
+            }
+          }, 100)
+        }
       }, [numbers])
 
       const reset = useCallback(() => {
