@@ -17,7 +17,7 @@ class Nonograms {
     this.#columns = numbers[1].length
 
     const grid = Array(this.#rows).fill('').map(() => Array(this.#columns).fill('u'))
-    this.#toRegExp()
+    this.toRegExp()
     this.duration = Date.now()
     this.oxTest(grid)
     this.latest = grid
@@ -32,7 +32,7 @@ class Nonograms {
     return this.#grid[this.#grid.length - 1]
   }
   set latest (grid) {
-    this.#grid.push(this.#clone(grid))
+    this.#grid.push(this.clone(grid))
   }
 
   get solved () {
@@ -91,7 +91,7 @@ class Nonograms {
               column: k,
               value: 'o'
             })
-            const grid = this.#clone(this.latest)
+            const grid = this.clone(this.latest)
             grid[j][k] = 'o'
             this.latest = grid
             this.#loop = true
@@ -146,11 +146,11 @@ class Nonograms {
     return rowReg[row].test(rows) && columnReg[column].test(columns)
   }
 
-  #clone (grid) {
+  clone (grid) {
     return grid.map(v => v.slice())
   }
 
-  #toRegExp () {
+  toRegExp () {
     // o - filled
     // x - crossed
     // u - unlabeled
@@ -170,4 +170,8 @@ class Nonograms {
       }
     })
   }
+}
+
+if (typeof module === 'object' && typeof module.exports === 'object') {
+  module.exports = Nonograms
 }
