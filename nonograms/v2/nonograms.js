@@ -120,9 +120,11 @@ class Nonograms {
           if (grid[i][j] === 'u') {
             // 尝试 o
             grid[i][j] = 'o'
+
             if (this.validate(grid, i, j)) { // o 校验通过
               // 尝试 x
               grid[i][j] = 'x'
+
               if (this.validate(grid, i, j)) { // x 校验通过
                 grid[i][j] = 'u'
               } else { // x 校验不通过，证明 o 是正解
@@ -140,10 +142,22 @@ class Nonograms {
   }
 
   validate (grid, row, column) {
-    const rows = grid[row].join('')
-    const columns = grid.map(v => v[column]).join('')
-    const [rowReg, columnReg] = this.regexps
-    return rowReg[row].test(rows) && columnReg[column].test(columns)
+    const rows = grid[row].slice()
+    const columns = grid.map(v => v[column])
+    const [rowRegs, columnRegs] = this.regexps
+
+    const rs = rows.map(v => v === 'u' ? 0 : 1).join('')
+    const rh = Math.floor(rs.length / 2)
+    const rf = rs.substr(0, rh)
+    const rl = rs.substr(-rh)
+    const cs = columns.map(v => v === 'u' ? 0 : 1).join('')
+    const ch = Math.floor(cs.length / 2)
+    const cf = cs.substr(0, ch)
+    const cl = cs.substr(-ch)
+
+    const rReg = rf > rl ? rowRegs[row][0].test(rows.join('')) : rowRegs[row][1].test(rows.reverse().join(''))
+    const cReg = cf > cl ? columnRegs[column][0].test(columns.join('')) : columnRegs[column][1].test(columns.reverse().join(''))
+    return rReg && cReg
   }
 
   clone (grid) {
@@ -158,15 +172,17 @@ class Nonograms {
       const cellCount = i ? this.#columns : this.#rows
       for (let j = 0; j < cellCount; j++) {
         const number = numbers[j]
-        let reg = '^[xu]*'
+        const arr = ['[xu]*']
         for (let k = 0; k < number.length; k++) {
           if (k) {
-            reg += '[xu]+'
+            arr.push('[xu]+')
           }
-          reg += '[uo]{' + number[k] + '}'
+          arr.push('[uo]{' + number[k] + '}')
         }
-        reg += '[xu]*$'
-        this.regexps[i][j] = new RegExp(reg)
+        arr.push('[xu]*')
+        const reg1 = '^' + arr.join('') + '$'
+        const reg2 = '^' + arr.reverse().join('') + '$'
+        this.regexps[i][j] = [new RegExp(reg1), new RegExp(reg2)]
       }
     })
   }

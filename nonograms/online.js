@@ -77,7 +77,7 @@ async function solve (ids) {
     console.log(JSON.stringify(numbers))
     const res = new Nonograms(numbers)
     if (res.solved) {
-      const nono = res.latest.map(row => row.join('').replace(/o/g, '■ ').replace(/x/g, '  ')) // ■ □
+      const nono = res.latest.map(row => row.join('').replace(/o/g, '  ').replace(/x/g, '■ ')) //  □
       console.log(nono.join('\n'))
     }
     console.log(JSON.stringify(res.latest))
