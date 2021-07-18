@@ -147,31 +147,31 @@ class Nonograms {
     const regs2 = rowRegs[row].slice().reverse()
     const regs3 = columnRegs[column].slice()
     const regs4 = columnRegs[column].slice().reverse()
-    let reg1 = '^[xu]*'
-    let reg2 = '^[xu]*'
-    let reg3 = '^[xu]*'
-    let reg4 = '^[xu]*'
-    let start = 0
-    const end = Math.max(rowRegs[row].length, columnRegs[column].length)
+    const stop1 = rowRegs[row].length
+    const stop2 = columnRegs[column].length
+    let start1 = Math.floor(stop1 / 2) || 1
+    let start2 = Math.floor(stop2 / 2) || 1
     let res = true
-    while (start < end && res) {
+    while ((start1 <= stop1 || start2 <= stop2) && res) {
       let res1 = true
-      if (rowRegs[row].length > start) {
-        const suffix = start === rowRegs[row].length - 1 ? '[xu]*$' : '[xu]+'
-        reg1 += regs1[start] + suffix
-        reg2 += regs2[start] + suffix
+      if (start1 <= stop1) {
+        const begin = '^[xu]*'
+        const end = start1 === stop1 ? '[xu]*$' : ''
+        const reg1 = begin + regs1.slice(0, start1).map((v, i) => v + (i === start1 - 1 ? '' : '[xu]+')).join('') + end
+        const reg2 = begin + regs2.slice(0, start1).map((v, i) => v + (i === start1 - 1 ? '' : '[xu]+')).join('') + end
         res1 = new RegExp(reg1).test(row1) && new RegExp(reg2).test(row2)
+        start1++
       }
 
       let res2 = true
-      if (columnRegs[column].length > start) {
-        const suffix = start === columnRegs[column].length - 1 ? '[xu]*$' : '[xu]+'
-        reg3 += regs3[start] + suffix
-        reg4 += regs4[start] + suffix
-        res2 = new RegExp(reg3).test(column1) && new RegExp(reg4).test(column2)
+      if (start2 <= stop2) {
+        const begin = '^[xu]*'
+        const end = start2 === stop2 ? '[xu]*$' : ''
+        const reg1 = begin + regs3.slice(0, start2).map((v, i) => v + (i === start2 - 1 ? '' : '[xu]+')).join('') + end
+        const reg2 = begin + regs4.slice(0, start2).map((v, i) => v + (i === start2 - 1 ? '' : '[xu]+')).join('') + end
+        res2 = new RegExp(reg1).test(column1) && new RegExp(reg2).test(column2)
+        start2++
       }
-
-      start++
 
       res = res1 && res2
     }
