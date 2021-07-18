@@ -49,7 +49,7 @@ class Nonograms {
   }
 
   solveSync (time) {
-    while (!this.solved && this.#loop && time !== 0) {
+    while (this.#loop && time !== 0) {
       time--
       this.#loopTime++
       this.#loop = false
@@ -59,14 +59,16 @@ class Nonograms {
 
         let last = this.#tryAndError.length - 1
         while (last > -1) {
-          const { grid, row, column, value } = this.#tryAndError[last]
+          const [index, row, column, value] = this.#tryAndError[last]
           if (value === 'x') {
             this.#tryAndError.length = last
             last--
           } else if (value === 'o') {
-            this.#tryAndError[last].value = 'x'
-            this.#grid.length = grid
-            this.latest[row][column] = 'x'
+            this.#tryAndError[last][3] = 'x'
+            this.#grid.length = index
+            const grid = this.clone(this.latest)
+            grid[row][column] = 'x'
+            this.latest = grid
             this.#loop = true
 
             if (!this.validate(this.latest, row, column)) {
@@ -81,22 +83,16 @@ class Nonograms {
           break
         }
       } else {
-        for (let i = 0; i < this.#rows; i++) {
-          const j = i // v1
-          const k = this.latest[j].findIndex(v => v === 'u')
-          if (k > -1) {
-            this.#tryAndError.push({
-              grid: this.#grid.length,
-              row: j,
-              column: k,
-              value: 'o'
-            })
+        for (let row = 0; row < this.#rows; row++) {
+          const column = this.latest[row].findIndex(v => v === 'u')
+          if (column > -1) {
+            this.#tryAndError.push([this.#grid.length, row, column, 'o'])
             const grid = this.clone(this.latest)
-            grid[j][k] = 'o'
+            grid[row][column] = 'o'
             this.latest = grid
             this.#loop = true
 
-            if (!this.validate(this.latest, j, k)) {
+            if (!this.validate(this.latest, row, column)) {
               this.#backtracking = true
             }
             break
@@ -142,22 +138,45 @@ class Nonograms {
   }
 
   validate (grid, row, column) {
-    const rows = grid[row].slice()
-    const columns = grid.map(v => v[column])
     const [rowRegs, columnRegs] = this.regexps
+    const row1 = grid[row].join('')
+    const row2 = grid[row].slice().reverse().join('')
+    const column1 = grid.map(v => v[column]).join('')
+    const column2 = grid.map(v => v[column]).reverse().join('')
+    const regs1 = rowRegs[row].slice()
+    const regs2 = rowRegs[row].slice().reverse()
+    const regs3 = columnRegs[column].slice()
+    const regs4 = columnRegs[column].slice().reverse()
+    let reg1 = '^[xu]*'
+    let reg2 = '^[xu]*'
+    let reg3 = '^[xu]*'
+    let reg4 = '^[xu]*'
+    let start = 0
+    const end = Math.max(rowRegs[row].length, columnRegs[column].length)
+    let res = true
+    while (start < end && res) {
+      let res1 = true
+      if (rowRegs[row].length > start) {
+        const suffix = start === rowRegs[row].length - 1 ? '[xu]*$' : '[xu]+'
+        reg1 += regs1[start] + suffix
+        reg2 += regs2[start] + suffix
+        res1 = new RegExp(reg1).test(row1) && new RegExp(reg2).test(row2)
+      }
 
-    const rs = rows.map(v => v === 'u' ? 0 : 1).join('')
-    const rh = Math.floor(rs.length / 2)
-    const rf = rs.substr(0, rh)
-    const rl = rs.substr(-rh)
-    const cs = columns.map(v => v === 'u' ? 0 : 1).join('')
-    const ch = Math.floor(cs.length / 2)
-    const cf = cs.substr(0, ch)
-    const cl = cs.substr(-ch)
+      let res2 = true
+      if (columnRegs[column].length > start) {
+        const suffix = start === columnRegs[column].length - 1 ? '[xu]*$' : '[xu]+'
+        reg3 += regs3[start] + suffix
+        reg4 += regs4[start] + suffix
+        res2 = new RegExp(reg3).test(column1) && new RegExp(reg4).test(column2)
+      }
 
-    const rReg = rf > rl ? rowRegs[row][0].test(rows.join('')) : rowRegs[row][1].test(rows.reverse().join(''))
-    const cReg = cf > cl ? columnRegs[column][0].test(columns.join('')) : columnRegs[column][1].test(columns.reverse().join(''))
-    return rReg && cReg
+      start++
+
+      res = res1 && res2
+    }
+
+    return res
   }
 
   clone (grid) {
@@ -172,17 +191,11 @@ class Nonograms {
       const cellCount = i ? this.#columns : this.#rows
       for (let j = 0; j < cellCount; j++) {
         const number = numbers[j]
-        const arr = ['[xu]*']
+        const reg = []
         for (let k = 0; k < number.length; k++) {
-          if (k) {
-            arr.push('[xu]+')
-          }
-          arr.push('[uo]{' + number[k] + '}')
+          reg.push('[uo]{' + number[k] + '}')
         }
-        arr.push('[xu]*')
-        const reg1 = '^' + arr.join('') + '$'
-        const reg2 = '^' + arr.reverse().join('') + '$'
-        this.regexps[i][j] = [new RegExp(reg1), new RegExp(reg2)]
+        this.regexps[i][j] = reg
       }
     })
   }
