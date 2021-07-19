@@ -81,6 +81,7 @@ async function solve (ids) {
       console.log(nono.join('\n'))
     }
     console.log(JSON.stringify(res.latest))
+    console.log(`${host}/${id} [${res.latest.length}, ${res.latest[0].length}] ${res.duration}`)
     console.log('================================================================')
   }
 }

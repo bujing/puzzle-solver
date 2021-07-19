@@ -19,6 +19,8 @@ class Nonograms {
     const grid = Array(this.#rows).fill('').map(() => Array(this.#columns).fill('u'))
     this.toRegExp()
     this.duration = Date.now()
+    this.oxNaked(grid)
+    this.oxHidden(grid)
     this.oxTest(grid)
     this.latest = grid
     if (this.solved) {
@@ -107,28 +109,41 @@ class Nonograms {
   }
 
   oxTest (grid) {
+    const rowMid = Math.ceil(this.#rows / 2)
+    const rowIndex = Array(this.#rows).fill('').map((v, i) => i >= rowMid ? this.#rows - i + rowMid - 1 : i)
+    const columnMid = Math.ceil(this.#columns / 2)
+    const columnIndex = Array(this.#columns).fill('').map((v, i) => i >= columnMid ? this.#columns - i + columnMid - 1 : i)
+
     let loop = true
     while (loop) {
       this.#loopTime++
+      console.log(`round ${this.#loopTime}`, new Date().toString())
       loop = false
-      for (let i = 0; i < this.#rows; i++) {
-        for (let j = 0; j < this.#columns; j++) {
-          if (grid[i][j] === 'u') {
+      for (let i = 0; i < rowIndex.length; i++) {
+        const row = rowIndex[i]
+        const rowReverse = row >= rowMid
+        for (let j = 0; j < columnIndex.length; j++) {
+          const column = columnIndex[j]
+          const columnReverse = column >= columnMid
+          if (grid[row][column] === 'u') {
             // 尝试 o
-            grid[i][j] = 'o'
+            grid[row][column] = 'o'
 
-            if (this.validate(grid, i, j)) { // o 校验通过
+            if (this.validate(grid, row, column, rowReverse, columnReverse)) { // o 校验通过
               // 尝试 x
-              grid[i][j] = 'x'
+              grid[row][column] = 'x'
 
-              if (this.validate(grid, i, j)) { // x 校验通过
-                grid[i][j] = 'u'
+              if (this.validate(grid, row, column, rowReverse, columnReverse)) { // x 校验通过
+                // console.log(row, column, 'u')
+                grid[row][column] = 'u'
               } else { // x 校验不通过，证明 o 是正解
-                grid[i][j] = 'o'
+                // console.log(row, column, 'o')
+                grid[row][column] = 'o'
                 loop = true
               }
             } else { // o 校验不通过，证明 x 是正解
-              grid[i][j] = 'x'
+              // console.log(row, column, 'o')
+              grid[row][column] = 'x'
               loop = true
             }
           }
@@ -137,7 +152,79 @@ class Nonograms {
     }
   }
 
-  validate (grid, row, column) {
+  oxNaked (grid) {
+    this.numbers.forEach((numbers, isColumn) => {
+      const cellCount = isColumn ? this.#rows : this.#columns
+      numbers.forEach((number, j) => {
+        // 计算排列所需的最少单元格数量
+        const total = number.reduce((acc, cur) => acc + cur) + number.length - 1
+        let start = 0
+        const places = number.map(length => {
+          start += length
+          return {
+            end: start++ - 1,
+            exceed: length + total - cellCount
+          }
+        })
+        places.filter(place => place.exceed > 0).forEach(place => {
+          let k = 0
+          while (k < place.exceed) {
+            const i = place.end - k
+            const [row, column] = isColumn ? [i, j] : [j, i]
+            grid[row][column] = 'o'
+            k++
+          }
+        })
+      })
+    })
+  }
+
+  oxHidden (grid) {
+    let loop = true
+    while (loop) {
+      loop = false
+
+      this.numbers.forEach((numbers, isColumn) => {
+        const cellCount = isColumn ? this.#rows : this.#columns
+        numbers.forEach((number, index) => {
+          _fill(number, index, cellCount, isColumn, false)
+          _fill(number, index, cellCount, isColumn, true)
+        })
+      })
+
+      function _fill (number, i, cellCount, isColumn, isReverse) {
+        // 找出排或列的单元格
+        const cells = isColumn ? grid.map(v => v[i]) : grid[i]
+        // 第一个或最后一个填充块的长度
+        const length = isReverse ? number[number.length - 1] : number[0]
+        // 边缘
+        const edge = isReverse ? cellCount - 1 : 0
+
+        let o1st = isReverse ? cells.lastIndexOf('o') : cells.indexOf('o')
+        if (o1st === edge) {
+          const j = isReverse ? cellCount - length - 1 : length
+          const [x, y] = isColumn ? [j, i] : [i, j]
+          if (grid[x][y] === 'u') {
+            grid[x][y] = 'x'
+            loop = true
+          }
+        }
+        if (o1st > -1) {
+          // 填充
+          while (isReverse ? o1st > cellCount - length - 1 : o1st < length) {
+            const [x, y] = isColumn ? [o1st, i] : [i, o1st]
+            if (grid[x][y] === 'u') {
+              grid[x][y] = 'o'
+              loop = true
+            }
+            o1st += (isReverse ? -1 : 1)
+          }
+        }
+      }
+    }
+  }
+
+  validate (grid, row, column, rowReverse, columnReverse) {
     const [rowRegs, columnRegs] = this.regexps
     const row1 = grid[row].join('')
     const row2 = grid[row].slice().reverse().join('')
@@ -157,20 +244,20 @@ class Nonograms {
       if (start1 <= stop1) {
         const begin = '^[xu]*'
         const end = start1 === stop1 ? '[xu]*$' : ''
-        const reg1 = begin + regs1.slice(0, start1).map((v, i) => v + (i === start1 - 1 ? '' : '[xu]+')).join('') + end
-        const reg2 = begin + regs2.slice(0, start1).map((v, i) => v + (i === start1 - 1 ? '' : '[xu]+')).join('') + end
-        res1 = new RegExp(reg1).test(row1) && new RegExp(reg2).test(row2)
-        start1++
+        const reg1 = new RegExp(begin + regs1.slice(0, start1).map((v, i) => v + (i === start1 - 1 ? '' : '[xu]+')).join('') + end)
+        const reg2 = new RegExp(begin + regs2.slice(0, start1).map((v, i) => v + (i === start1 - 1 ? '' : '[xu]+')).join('') + end)
+        res1 = rowReverse ? (reg2.test(row2) && reg1.test(row1)) : (reg1.test(row1) && reg2.test(row2))
+        start1 = start1 !== stop1 ? Math.min(start1 + 2, stop1) : start1 + 1
       }
 
       let res2 = true
       if (start2 <= stop2) {
         const begin = '^[xu]*'
         const end = start2 === stop2 ? '[xu]*$' : ''
-        const reg1 = begin + regs3.slice(0, start2).map((v, i) => v + (i === start2 - 1 ? '' : '[xu]+')).join('') + end
-        const reg2 = begin + regs4.slice(0, start2).map((v, i) => v + (i === start2 - 1 ? '' : '[xu]+')).join('') + end
-        res2 = new RegExp(reg1).test(column1) && new RegExp(reg2).test(column2)
-        start2++
+        const reg1 = new RegExp(begin + regs3.slice(0, start2).map((v, i) => v + (i === start2 - 1 ? '' : '[xu]+')).join('') + end)
+        const reg2 = new RegExp(begin + regs4.slice(0, start2).map((v, i) => v + (i === start2 - 1 ? '' : '[xu]+')).join('') + end)
+        res2 = columnReverse ? (reg2.test(column2) && reg1.test(column1)) : (reg1.test(column1) && reg2.test(column2))
+        start2 = start2 !== stop2 ? Math.min(start2 + 2, stop2) : start2 + 1
       }
 
       res = res1 && res2
