@@ -193,34 +193,34 @@ class Nonograms {
           _fill(number, index, cellCount, isColumn, true)
         })
       })
+    }
 
-      function _fill (number, i, cellCount, isColumn, isReverse) {
-        // 找出排或列的单元格
-        const cells = isColumn ? grid.map(v => v[i]) : grid[i]
-        // 第一个或最后一个填充块的长度
-        const length = isReverse ? number[number.length - 1] : number[0]
-        // 边缘
-        const edge = isReverse ? cellCount - 1 : 0
+    function _fill (number, i, cellCount, isColumn, isReverse) {
+      // 找出排或列的单元格
+      const cells = isColumn ? grid.map(v => v[i]) : grid[i]
+      // 第一个或最后一个填充块的长度
+      const length = isReverse ? number[number.length - 1] : number[0]
+      // 边缘
+      const edge = isReverse ? cellCount - 1 : 0
 
-        let o1st = isReverse ? cells.lastIndexOf('o') : cells.indexOf('o')
-        if (o1st === edge) {
-          const j = isReverse ? cellCount - length - 1 : length
-          const [x, y] = isColumn ? [j, i] : [i, j]
-          if (grid[x] && grid[x][y] === 'u') {
-            grid[x][y] = 'x'
+      let o1st = isReverse ? cells.lastIndexOf('o') : cells.indexOf('o')
+      if (o1st === edge) {
+        const j = isReverse ? cellCount - length - 1 : length
+        const [x, y] = isColumn ? [j, i] : [i, j]
+        if (grid[x] && grid[x][y] === 'u') {
+          grid[x][y] = 'x'
+          loop = true
+        }
+      }
+      if (o1st > -1) {
+        // 填充
+        while (isReverse ? o1st > cellCount - length - 1 : o1st < length) {
+          const [x, y] = isColumn ? [o1st, i] : [i, o1st]
+          if (grid[x][y] === 'u') {
+            grid[x][y] = 'o'
             loop = true
           }
-        }
-        if (o1st > -1) {
-          // 填充
-          while (isReverse ? o1st > cellCount - length - 1 : o1st < length) {
-            const [x, y] = isColumn ? [o1st, i] : [i, o1st]
-            if (grid[x] && grid[x][y] === 'u') {
-              grid[x][y] = 'o'
-              loop = true
-            }
-            o1st += (isReverse ? -1 : 1)
-          }
+          o1st += (isReverse ? -1 : 1)
         }
       }
     }

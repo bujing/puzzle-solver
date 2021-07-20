@@ -1,6 +1,6 @@
 class Nonograms {
   numbers = [[], []]
-  grid = [] // 盘面
+  latest = [] // 盘面
   duration = 0 // 耗时
   #rows = 0
   #columns = 0
@@ -10,11 +10,15 @@ class Nonograms {
     this.numbers = numbers
     this.#rows = numbers[0].length
     this.#columns = numbers[1].length
-    this.grid = Array(this.#rows).fill('').map(() => Array(this.#columns).fill(0))
+    this.latest = Array(this.#rows).fill('').map(() => Array(this.#columns).fill('u'))
 
     this.duration = Date.now()
     this.solve()
     this.duration = Date.now() - this.duration
+  }
+
+  get solved () {
+    return this.latest.flat().filter(v => v === 'u').length === 0
   }
 
   solve () {
@@ -28,7 +32,7 @@ class Nonograms {
         for (let j = 0; j < this.#columns; j++) {
           const val = Array.from(new Set(candidates.map(v => v[j])))
           if (val.length === 1) {
-            this.grid[i][j] = val[0]
+            this.latest[i][j] = val[0]
             this.#loop = true
           }
         }
@@ -37,7 +41,7 @@ class Nonograms {
         for (let j = 0; j < this.#rows; j++) {
           const val = Array.from(new Set(candidates.map(v => v[j])))
           if (val.length === 1) {
-            this.grid[j][i] = val[0]
+            this.latest[j][i] = val[0]
             this.#loop = true
           }
         }
@@ -45,7 +49,7 @@ class Nonograms {
 
       rowCandidates.forEach((v, i) => {
         if (v.length === 1) {
-          this.grid[i] = v[0]
+          this.latest[i] = v[0]
           rowCandidates[i] = []
           this.#loop = true
         }
@@ -53,7 +57,7 @@ class Nonograms {
       columnCandidates.forEach((v, i) => {
         if (v.length === 1) {
           v[0].forEach((v, j) => {
-            this.grid[j][i] = v
+            this.latest[j][i] = v
           })
           columnCandidates[i] = []
           this.#loop = true
@@ -63,9 +67,9 @@ class Nonograms {
       if (this.#loop) {
         for (let i = 0; i < this.#rows; i++) {
           for (let j = 0; j < this.#columns; j++) {
-            if (this.grid[i][j]) {
-              rowCandidates[i] = rowCandidates[i].filter(v => v[j] === this.grid[i][j])
-              columnCandidates[j] = columnCandidates[j].filter(v => v[i] === this.grid[i][j])
+            if (this.latest[i][j] !== 'u') {
+              rowCandidates[i] = rowCandidates[i].filter(v => v[j] === this.latest[i][j])
+              columnCandidates[j] = columnCandidates[j].filter(v => v[i] === this.latest[i][j])
             }
           }
         }
@@ -85,12 +89,12 @@ class Nonograms {
         for (let k = 0; k < possible.length; k++) {
           let l = possible[k]
           while (l) {
-            candidates[j].push(-1)
+            candidates[j].push('x')
             l--
           }
           l = numbers[i][k]
           while (l) {
-            candidates[j].push(1)
+            candidates[j].push('o')
             l--
           }
         }

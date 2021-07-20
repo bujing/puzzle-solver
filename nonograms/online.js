@@ -1,7 +1,7 @@
 // https://onlinenonograms.com/
 const https = require('https')
 const fs = require('fs')
-const Nonograms = require('./v2/nonograms')
+const Nonograms = require('./v2oxtest')
 
 const log = console.log
 console.log = function (...val) {

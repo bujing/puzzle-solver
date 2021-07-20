@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Nonograms Solver</title>
+  <link rel="stylesheet" href="https://unpkg.zhimg.com/poplar-css/dist/poplar.css">
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+
+  <div id="root"></div>
+
+  <!-- <script src="v0candidate.js"></script> -->
+  <!-- <script src="v1exhaustive.js"></script> -->
+  <script src="v2oxtest.js"></script>
+  <script src="puzzles.js"></script>
+  <script>
+    // puzzles.slice(0, 15).forEach(item => console.log(new Nonograms(item)))
+  </script>
+  <script src="https://unpkg.zhimg.com/react/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.zhimg.com/react-dom/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.zhimg.com/babel-standalone/babel.min.js"></script>
+  <script type="text/babel">
+    const { Fragment, useState, useEffect, useCallback } = React
+
+    const App = () => {
+      const [numbers, setNumbers] = useState(puzzles[0])
+      const [grid, setGrid] = useState(() => {
+        return Array(numbers[0].length).fill('').map(() => Array(numbers[1].length).fill('u'))
+      })
+
+      const [inputNumbers, setInputNumbers] = useState('')
+      const submit = useCallback(() => {
+        if (inputNumbers) {
+          const numbers = JSON.parse(inputNumbers)
+          setNumbers(numbers)
+          setGrid(Array(numbers[0].length).fill('').map(() => Array(numbers[1].length).fill('u')))
+        }
+      }, [inputNumbers])
+
+      const solve = useCallback(() => {
+        const pause = false
+        const nono = new Nonograms(numbers, 10000, pause)
+        setGrid(nono.latest)
+        if (!pause) {
+          const t = window.setInterval(() => {
+            setGrid(nono.latest)
+            if (nono.solved) {
+              window.clearInterval(t)
+              console.log(nono)
+            }
+          }, 100)
+        }
+      }, [numbers])
+
+      const reset = useCallback(() => {
+        setNumbers([[], []])
+        setGrid([[], []])
+      }, [])
+
+      return (
+        <div className="puzzle">
+          <div></div>
+          <table className="horizontal">
+            <tbody>
+              <tr>
+                {numbers[1].map((item, i) => (
+                  <td key={i} className="cell">
+                    {item.map((num, j) => (
+                      <div key={j} className="cell-item">{num}</div>
+                    ))}
+                  </td>
+                ))}
+              </tr>
+            </tbody>
+          </table>
+          <div></div>
+
+          <table className="vertical">
+            <tbody>
+              {numbers[0].map((item, i) => (
+                <tr key={i}>
+                  <td className="cell">
+                    {item.map((num, j) => (
+                      <div key={j} className="cell-item">{num}</div>
+                    ))}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div>
+            {(numbers[0].length && numbers[1].length) ? (
+              <table className="grid">
+                <tbody>
+                  {grid.map((r, i) => (
+                    <tr key={i}>
+                      {r.map((c, j) => (
+                        <td key={j} className="cell">
+                          <input className={grid[i][j] === 'o' ? 'c1' : ''} readOnly />
+                          {grid[i][j] === 'x' && <i className="c9">×</i>}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <Fragment>
+                <fieldset>
+                  <textarea className="textarea" rows="5" cols="80" onChange={e => setInputNumbers(e.target.value)} />
+                </fieldset>
+              </Fragment>
+            )}
+          </div>
+          <div></div>
+
+          <div></div>
+          <div className="btn">
+            {numbers[0].length && numbers[1].length ? (
+              <button className="button-black" onClick={solve}>解题</button>
+            ) : (
+              <button className="button-black" onClick={submit}>确定</button>
+            )}
+            <button className="button-white" onClick={reset}>重置</button>
+          </div>
+          <div></div>
+        </div>
+      )
+    }
+
+    ReactDOM.render(<App />, document.querySelector('#root'))
+  </script>
+
+</body>
+</html>

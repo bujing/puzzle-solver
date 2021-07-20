@@ -1,0 +1,76 @@
+body {
+  background-color: #e8e8e8;
+}
+
+.puzzle {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  grid-template-rows: auto 1fr;
+}
+
+.horizontal td {
+  vertical-align: bottom;
+}
+.horizontal td:nth-child(5n):not(:last-child) {
+  border-right: 2px solid transparent;
+}
+.vertical tr:nth-child(5n):not(:last-child) {
+  border-bottom: 2px solid transparent;
+}
+.vertical td {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.grid tr:nth-child(5n):not(:last-child) {
+  border-bottom: 2px solid #333;
+}
+.grid td:nth-child(5n):not(:last-child) {
+  border-right: 2px solid #333;
+}
+
+.cell {
+  font-size: 12px;
+  line-height: 16px;
+  padding: 0;
+  position: relative;
+  text-align: center;
+}
+.cell input {
+  height: 12px;
+  padding: 0;
+  text-align: center;
+  vertical-align: top;
+  width: 12px;
+}
+.cell-item {
+  height: 16px;
+  width: 16px;
+}
+
+.c1 {
+  background-color: #333;
+}
+.c9 {
+  color: #666;
+  font-style: normal;
+  left: 0;
+  line-height: 14px;
+  position: absolute;
+  top: 0;
+  width: 16px;
+}
+
+.btn button {
+  display: block;
+  font-size: 14px;
+  height: 32px;
+  line-height: 30px;
+  margin-top: 10px;
+  padding: 0;
+  width: 100%;
+}
+
+.textarea {
+  font-size: 12px;
+}
