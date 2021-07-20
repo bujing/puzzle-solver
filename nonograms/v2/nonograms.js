@@ -117,7 +117,7 @@ class Nonograms {
     let loop = true
     while (loop) {
       this.#loopTime++
-      console.log(`round ${this.#loopTime}`, new Date().toString())
+      console.log(`round ${this.#loopTime}`, new Date().toTimeString().substr(0, 8) + '.' + new Date().getMilliseconds())
       loop = false
       for (let i = 0; i < rowIndex.length; i++) {
         const row = rowIndex[i]
@@ -171,7 +171,9 @@ class Nonograms {
           while (k < place.exceed) {
             const i = place.end - k
             const [row, column] = isColumn ? [i, j] : [j, i]
-            grid[row][column] = 'o'
+            if (grid[row]) {
+              grid[row][column] = 'o'
+            }
             k++
           }
         })
@@ -204,7 +206,7 @@ class Nonograms {
         if (o1st === edge) {
           const j = isReverse ? cellCount - length - 1 : length
           const [x, y] = isColumn ? [j, i] : [i, j]
-          if (grid[x][y] === 'u') {
+          if (grid[x] && grid[x][y] === 'u') {
             grid[x][y] = 'x'
             loop = true
           }
@@ -213,7 +215,7 @@ class Nonograms {
           // 填充
           while (isReverse ? o1st > cellCount - length - 1 : o1st < length) {
             const [x, y] = isColumn ? [o1st, i] : [i, o1st]
-            if (grid[x][y] === 'u') {
+            if (grid[x] && grid[x][y] === 'u') {
               grid[x][y] = 'o'
               loop = true
             }

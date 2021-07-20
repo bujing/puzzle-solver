@@ -1,6 +1,13 @@
 // https://onlinenonograms.com/
 const https = require('https')
+const fs = require('fs')
 const Nonograms = require('./v2/nonograms')
+
+const log = console.log
+console.log = function (...val) {
+  write(val.join(' ') + '\n')
+  log(...val)
+}
 
 const host = 'onlinenonograms.com'
 
@@ -20,7 +27,7 @@ for (let i = 2; i < process.argv.length; i++) {
 solve(ids)
 
 function fetch (id) {
-  console.log(`${host}/${id}`)
+  console.info(`${host}/${id}`)
   reg.left.lastIndex = 0
   reg.top.lastIndex = 0
   reg.tr.lastIndex = 0
@@ -74,14 +81,20 @@ async function solve (ids) {
   for (let i = 0; i < ids.length; i++) {
     const id = ids[i]
     const numbers = await fetch(id)
-    console.log(JSON.stringify(numbers))
+    write(`\n${host}/${id} ${numbers[0].length}*${numbers[1].length} ${new Date().toLocaleDateString()}\n`)
+    console.info(JSON.stringify(numbers))
     const res = new Nonograms(numbers)
     if (res.solved) {
-      const nono = res.latest.map(row => row.join('').replace(/o/g, '  ').replace(/x/g, '■ ')) //  □
-      console.log(nono.join('\n'))
+      const nono = res.latest.map(row => row.join(' ').replace(/o/g, ' ').replace(/x/g, '■')) //  □
+      console.info(nono.join('\n'))
     }
-    console.log(JSON.stringify(res.latest))
-    console.log(`${host}/${id} [${res.latest.length}, ${res.latest[0].length}] ${res.duration}`)
-    console.log('================================================================')
+    console.info(JSON.stringify(res.latest))
+    console.info(`${host}/${id} ${numbers[0].length}*${numbers[1].length} ${res.duration}`)
+    console.info('================================================================')
+    write(`${host}/${id} ${res.duration}ms\n`)
   }
+}
+
+function write (text) {
+  fs.appendFileSync('history.txt', text)
 }
