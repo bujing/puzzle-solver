@@ -157,7 +157,7 @@ class Nonograms {
       const cellCount = isColumn ? this.#rows : this.#columns
       numbers.forEach((number, j) => {
         // 计算排列所需的最少单元格数量
-        const total = number.reduce((acc, cur) => acc + cur) + number.length - 1
+        const total = number.length ? number.reduce((acc, cur) => acc + cur) + number.length - 1 : 0
         let start = 0
         const places = number.map(length => {
           start += length
