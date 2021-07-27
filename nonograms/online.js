@@ -12,6 +12,7 @@ console.log = function (...val) {
 const host = 'onlinenonograms.com'
 
 const reg = {
+  catitems: /<a href="(\d+)">.*?<\/a>/g,
   left: /<table[^>]*id="cross_left"[^>]*>(.*?)<\/table>/g,
   top: /<table[^>]*id="cross_top"[^>]*>(.*?)<\/table>/g,
   tr: /<tr[^>]*>(.*?)<\/tr>/g,
@@ -24,9 +25,38 @@ for (let i = 2; i < process.argv.length; i++) {
     ids.push(...process.argv[i].split(','))
   }
 }
-solve(ids)
+if (ids[0] === 'catalog') {
+  fetchList(ids[1])
+} else {
+  solve(ids)
+}
 
-function fetch (id) {
+function fetchList (page) {
+  console.log(`\nBlack And White / Huge / P${page}`)
+  reg.catitems.lastIndex = 0
+  return new Promise(resolve => {
+    https.get({
+      host,
+      path: '/index.php?place=catalog&kat=0&color=bw&size=huge&star=&filtr=all&sort=sortsizea&noset=2&page=' + page
+    }, res => {
+      const buffer = []
+      res.on('data', chunk => buffer.push(chunk))
+      res.on('end', () => {
+        const bufferData = Buffer.concat(buffer).toString()
+        let ids = []
+        let item
+        while (item = reg.catitems.exec(bufferData)) {
+          if (item[1]) {
+            ids.push(item[1])
+          }
+        }
+        solve(ids)
+      })
+    })
+  })
+}
+
+function fetchItem (id) {
   console.info(`${host}/${id}`)
   reg.left.lastIndex = 0
   reg.top.lastIndex = 0
@@ -80,7 +110,7 @@ function fetch (id) {
 async function solve (ids) {
   for (let i = 0; i < ids.length; i++) {
     const id = ids[i]
-    const numbers = await fetch(id)
+    const numbers = await fetchItem(id)
     write(`\n${host}/${id} ${numbers[0].length}*${numbers[1].length} ${new Date().toLocaleDateString()}\n`)
     console.info(JSON.stringify(numbers))
     const res = new Nonograms(numbers)
