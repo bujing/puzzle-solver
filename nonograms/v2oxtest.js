@@ -158,25 +158,32 @@ class Nonograms {
       numbers.forEach((number, j) => {
         // 计算排列所需的最少单元格数量
         const total = number.length ? number.reduce((acc, cur) => acc + cur) + number.length - 1 : 0
-        let start = 0
-        const places = number.map(length => {
-          start += length
-          return {
-            end: start++ - 1,
-            exceed: length + total - cellCount
-          }
-        })
-        places.filter(place => place.exceed > 0).forEach(place => {
-          let k = 0
-          while (k < place.exceed) {
-            const i = place.end - k
+        if (total === 0) {
+          for (let i = 0; i < cellCount; i++) {
             const [row, column] = isColumn ? [i, j] : [j, i]
-            if (grid[row]) {
-              grid[row][column] = 'o'
-            }
-            k++
+            grid[row][column] = 'x'
           }
-        })
+        } else {
+          let start = 0
+          const places = number.map(length => {
+            start += length
+            return {
+              end: start++ - 1,
+              exceed: length + total - cellCount
+            }
+          })
+          places.filter(place => place.exceed > 0).forEach(place => {
+            let k = 0
+            while (k < place.exceed) {
+              const i = place.end - k
+              const [row, column] = isColumn ? [i, j] : [j, i]
+              if (grid[row]) {
+                grid[row][column] = 'o'
+              }
+              k++
+            }
+          })
+        }
       })
     })
   }
