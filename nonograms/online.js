@@ -19,7 +19,7 @@ const reg = {
   td: /<td[^>]*>(.*?)<\/td>/g
 }
 
-let filename = 'history/history.txt'
+let filename = 'record/history.txt'
 const ids = []
 for (let i = 2; i < process.argv.length; i++) {
   if (process.argv[i]) {
@@ -27,7 +27,7 @@ for (let i = 2; i < process.argv.length; i++) {
   }
 }
 if (ids[0] === 'catalog') {
-  filename = `history/p${ids[1]}_${Date.now()}.txt`
+  filename = `record/p${ids[1]}_${Date.now()}.txt`
   fetchList(ids[1])
 } else {
   solve(ids)
