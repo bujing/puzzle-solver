@@ -4,145 +4,26 @@
   <meta charset="UTF-8">
   <title>Sudoku Solver</title>
   <link rel="stylesheet" href="https://unpkg.zhimg.com/poplar-css/dist/poplar.css">
-  <style>
-    body {
-      background-color: #e8e8e8;
-    }
-
-    .grid tr:nth-child(3n):not(:last-child) {
-      border-bottom: 2px solid #333;
-    }
-    .grid td:nth-child(3n):not(:last-child) {
-      border-right: 2px solid #333;
-    }
-
-    .cell {
-      padding: 0;
-      position: relative;
-    }
-    .cell input {
-      font-size: 24px;
-      height: 48px;
-      padding: 0;
-      width: 48px;
-    }
-
-    .candidates {
-      color: #38f;
-      font-size: 12px;
-      left: 0;
-      position: absolute;
-      right: 0;
-      top: 0;
-    }
-    .candidates-item {
-      flex: 0 0 33.33%;
-      height: 33.33%;
-    }
-
-    .btn {
-      width: 472px;
-    }
-    .btn button {
-      display: block;
-      height: 36px;
-      line-height: 34px;
-      margin-top: 10px;
-      padding: 0;
-      width: 100%;
-    }
-  </style>
+  <link rel="stylesheet" href="index.css">
 </head>
 <body>
 
   <div id="root"></div>
 
   <script src="sudoku.js"></script>
+  <script src="puzzles.js"></script>
+  <script>
+    // puzzles.forEach(item => console.log(new Sudoku(item)))
+  </script>
   <script src="https://unpkg.zhimg.com/react/umd/react.development.js" crossorigin></script>
   <script src="https://unpkg.zhimg.com/react-dom/umd/react-dom.development.js" crossorigin></script>
   <script src="https://unpkg.zhimg.com/babel-standalone/babel.min.js"></script>
-  <script>
-    const sudoku = []
-    // 1. 17 提示数
-    sudoku.push([
-      [0, 0, 0, 0, 0, 0, 0, 0, 0],
-      [1, 6, 0, 0, 5, 0, 0, 0, 0],
-      [4, 0, 0, 0, 0, 0, 2, 9, 0],
-      [0, 0, 0, 2, 0, 9, 0, 0, 0],
-      [8, 0, 0, 0, 0, 0, 3, 0, 1],
-      [0, 0, 0, 7, 0, 0, 0, 0, 0],
-      [0, 0, 2, 0, 0, 0, 0, 0, 0],
-      [0, 0, 0, 0, 0, 4, 0, 0, 0],
-      [0, 0, 7, 0, 3, 0, 0, 0, 5]
-    ])
-    // 2. 17 提示数
-    sudoku.push([
-      [0, 0, 0, 0, 0, 0, 0, 1, 5],
-      [4, 3, 7, 0, 6, 0, 0, 0, 0],
-      [0, 0, 0, 0, 0, 0, 0, 0, 0],
-      [0, 1, 0, 0, 0, 0, 0, 0, 0],
-      [6, 0, 0, 0, 4, 0, 7, 0, 0],
-      [3, 0, 0, 9, 0, 0, 0, 0, 0],
-      [0, 0, 0, 0, 0, 0, 4, 0, 0],
-      [0, 0, 0, 2, 0, 0, 0, 0, 0],
-      [0, 9, 0, 5, 0, 1, 0, 0, 0]
-    ])
-    // 3. 17 提示数
-    sudoku.push([
-      [3, 0, 0, 0, 0, 0, 0, 2, 0],
-      [0, 5, 0, 0, 0, 1, 0, 0, 0],
-      [0, 0, 0, 0, 0, 0, 0, 0, 0],
-      [5, 1, 9, 0, 0, 0, 0, 0, 0],
-      [0, 0, 0, 8, 7, 0, 0, 0, 0],
-      [0, 0, 4, 0, 0, 0, 0, 0, 0],
-      [7, 0, 0, 6, 2, 0, 0, 0, 0],
-      [0, 0, 0, 3, 0, 0, 4, 0, 5],
-      [0, 0, 0, 0, 0, 0, 1, 0, 0]
-    ])
-    // 4. 17 提示数
-    sudoku.push([
-      [6, 0, 0, 0, 5, 0, 4, 0, 0],
-      [0, 0, 0, 2, 0, 0, 7, 0, 5],
-      [8, 0, 0, 0, 0, 0, 0, 0, 0],
-      [3, 0, 0, 0, 0, 0, 0, 8, 0],
-      [0, 0, 0, 7, 4, 0, 0, 0, 0],
-      [0, 0, 0, 0, 0, 0, 0, 1, 0],
-      [0, 7, 0, 0, 0, 0, 2, 0, 0],
-      [0, 0, 0, 3, 0, 6, 0, 0, 0],
-      [0, 0, 0, 0, 0, 8, 0, 0, 0]
-    ])
-    // 5. 17 提示数
-    sudoku.push([
-      [0, 0, 0, 1, 0, 0, 0, 4, 0],
-      [6, 0, 0, 0, 0, 0, 0, 0, 0],
-      [0, 0, 0, 0, 3, 0, 0, 0, 0],
-      [3, 0, 6, 0, 0, 0, 0, 0, 5],
-      [0, 0, 0, 0, 0, 1, 0, 2, 0],
-      [8, 0, 0, 4, 0, 0, 0, 0, 0],
-      [0, 0, 0, 0, 5, 0, 8, 0, 6],
-      [0, 1, 0, 7, 0, 0, 0, 0, 0],
-      [0, 0, 0, 0, 0, 0, 3, 0, 0]
-    ])
-    // 6. 21 提示数
-    sudoku.push([
-      [8, 0, 0, 0, 0, 0, 0, 0, 0],
-      [0, 0, 3, 6, 0, 0, 0, 0, 0],
-      [0, 7, 0, 0, 9, 0, 2, 0, 0],
-      [0, 5, 0, 0, 0, 7, 0, 0, 0],
-      [0, 0, 0, 0, 4, 5, 7, 0, 0],
-      [0, 0, 0, 1, 0, 0, 0, 3, 0],
-      [0, 0, 1, 0, 0, 0, 0, 6, 8],
-      [0, 0, 8, 5, 0, 0, 0, 1, 0],
-      [0, 9, 0, 0, 0, 0, 4, 0, 0]
-    ])
-    sudoku.forEach(item => console.log(new Sudoku(item)))
-  </script>
   <script type="text/babel">
     const { Fragment, useState, useEffect, useCallback } = React
 
     const App = () => {
       const [lock, setLock] = useState(false)
-      const [base, setBase] = useState(sudoku[5])
+      const [base, setBase] = useState(puzzles[5])
       const [grid, setGrid] = useState(() => {
         return Array(9).fill('').map(() => Array(9).fill(0))
       })
@@ -150,7 +31,7 @@
       const updateCellValue = (i, j, v) => {
         if (!lock) {
           base[i][j] = Number(v)
-          setBase([...base])
+          setBase(base.slice())
         }
       }
 
@@ -184,6 +65,7 @@
                         disabled={lock && base[i][j] && base[i][j] === c}
                         type="text"
                         value={(c && !Array.isArray(c)) ? c : ''}
+                        maxLength="1"
                         onChange={e => updateCellValue(i, j, e.currentTarget.value)}
                       />
                     </td>

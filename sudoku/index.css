@@ -1,0 +1,46 @@
+body {
+  background-color: #e8e8e8;
+}
+
+.grid tr:nth-child(3n):not(:last-child) {
+  border-bottom: 2px solid #333;
+}
+.grid td:nth-child(3n):not(:last-child) {
+  border-right: 2px solid #333;
+}
+
+.cell {
+  padding: 0;
+  position: relative;
+}
+.cell input {
+  font-size: 24px;
+  height: 48px;
+  padding: 0;
+  width: 48px;
+}
+
+.candidates {
+  color: #38f;
+  font-size: 12px;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+.candidates-item {
+  flex: 0 0 33.33%;
+  height: 33.33%;
+}
+
+.btn {
+  width: 472px;
+}
+.btn button {
+  display: block;
+  height: 36px;
+  line-height: 34px;
+  margin-top: 10px;
+  padding: 0;
+  width: 100%;
+}
