@@ -1,4 +1,4 @@
-// https://onlinenonograms.com/
+// https://nine.websudoku.com/
 const https = require('https')
 const fs = require('fs')
 const Sudoku = require('./sudoku')
@@ -9,7 +9,7 @@ console.log = function (...val) {
   log(...val)
 }
 
-const host = 'grid.websudoku.com'
+const host = 'nine.websudoku.com'
 
 const reg = {
   table: /<table[^>]*id="puzzle_grid"[^>]*>(.*?)<\/table>/gi,
@@ -19,10 +19,10 @@ const reg = {
 
 let filename = 'record/history.txt'
 const ids = []
-for (let i = 2; i < process.argv.length; i++) {
-  if (process.argv[i]) {
-    ids.push(...process.argv[i].split(','))
-  }
+const start = Number(process.argv[2]) || 1
+const end = Number(process.argv[3]) || (start + 1)
+for (let i = start; i < end; i++) {
+  ids.push(i)
 }
 solve(ids)
 
@@ -30,7 +30,6 @@ function fetchItem (id) {
   console.info(`${host}/?level=4&set_id=${id}`)
   reg.table.lastIndex = 0
   reg.td.lastIndex = 0
-  reg.input.lastIndex = 0
   return new Promise(resolve => {
     https.get({
       host,
@@ -47,6 +46,7 @@ function fetchItem (id) {
           let i = 0
           while (td = reg.td.exec(table[1])) {
             if (i % 9 === 0) numbers.push([])
+            reg.input.lastIndex = 0
             const input = reg.input.exec(td[1])
             const row = Math.floor(i / 9)
             numbers[row].push(input ? Number(input[1]) : 0)
@@ -64,11 +64,14 @@ async function solve (ids) {
     const id = ids[i]
     const numbers = await fetchItem(id)
     write(`\n${host}/?level=4&set_id=${id} ${numbers[0].length}*${numbers[1].length} ${new Date().toLocaleDateString()}\n`)
-    console.log(numbers.map(row => ' ' + row.join(' | ').replace(/0/g, ' ') + ' ').join('\n-----------------------------------\n'))
-    console.log('\n')
+    console.log('-------------------------------------')
+    console.log(numbers.map(row => '| ' + row.join(' | ').replace(/0/g, ' ') + ' |').join('\n-------------------------------------\n'))
+    console.log('-------------------------------------')
     const res = new Sudoku(numbers)
     if (res.valueCount === 81) {
-      console.log(res.latest.map(row => ' ' + row.join(' | ') + ' ').join('\n-----------------------------------\n'))
+      console.log('\n-------------------------------------')
+      console.log(res.latest.map(row => '| ' + row.join(' | ') + ' |').join('\n-------------------------------------\n'))
+      console.log('-------------------------------------')
     }
     console.info(`${host}/?level=4&set_id=${id} ${numbers[0].length}*${numbers[1].length} ${res.duration}`)
     console.info('================================================================')
