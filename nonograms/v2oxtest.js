@@ -109,31 +109,22 @@ class Nonograms {
   }
 
   oxTest (grid) {
-    const rowMid = Math.ceil(this.#rows / 2)
-    const rowIndex = Array(this.#rows).fill('').map((v, i) => i >= rowMid ? this.#rows - i + rowMid - 1 : i)
-    const columnMid = Math.ceil(this.#columns / 2)
-    const columnIndex = Array(this.#columns).fill('').map((v, i) => i >= columnMid ? this.#columns - i + columnMid - 1 : i)
-
     let loop = true
     while (loop) {
       this.#loopTime++
       console.log(`round ${this.#loopTime}`, new Date().toTimeString().substr(0, 8) + '.' + new Date().getMilliseconds())
       loop = false
-      for (let i = 0; i < rowIndex.length; i++) {
-        const row = rowIndex[i]
-        const rowReverse = row >= rowMid
-        for (let j = 0; j < columnIndex.length; j++) {
-          const column = columnIndex[j]
-          const columnReverse = column >= columnMid
+      for (let row = 0; row < this.#rows; row++) {
+        for (let column = 0; column < this.#columns; column++) {
           if (grid[row][column] === 'u') {
             // 尝试 o
             grid[row][column] = 'o'
 
-            if (this.validate(grid, row, column, rowReverse, columnReverse)) { // o 校验通过
+            if (this.validate(grid, row, column)) { // o 校验通过
               // 尝试 x
               grid[row][column] = 'x'
 
-              if (this.validate(grid, row, column, rowReverse, columnReverse)) { // x 校验通过
+              if (this.validate(grid, row, column)) { // x 校验通过
                 // console.log(row, column, 'u')
                 grid[row][column] = 'u'
               } else { // x 校验不通过，证明 o 是正解
@@ -233,39 +224,48 @@ class Nonograms {
     }
   }
 
-  validate (grid, row, column, rowReverse, columnReverse) {
+  validate (grid, row, column) {
     const [rowRegs, columnRegs] = this.regexps
-    const row1 = grid[row].join('')
-    const row2 = grid[row].slice().reverse().join('')
-    const column1 = grid.map(v => v[column]).join('')
-    const column2 = grid.map(v => v[column]).reverse().join('')
-    const regs1 = rowRegs[row].slice()
-    const regs2 = rowRegs[row].slice().reverse()
-    const regs3 = columnRegs[column].slice()
-    const regs4 = columnRegs[column].slice().reverse()
+    const rowReverse = column / this.#columns > 0.5
+    const columnReverse = row / this.#rows > 0.5
+
+    let rows = grid[row].slice()
+    let rowReg = rowRegs[row].slice()
+    if (rowReverse) {
+      rows.reverse()
+      rowReg.reverse()
+    }
+    let columns = grid.map(v => v[column])
+    let columnReg = columnRegs[column].slice()
+    if (columnReverse) {
+      columns.reverse()
+      columnReg.reverse()
+    }
+    rows = rows.join('')
+    columns = columns.join('')
+
     const stop1 = rowRegs[row].length
     const stop2 = columnRegs[column].length
     let start1 = Math.floor(stop1 / 2) || 1
     let start2 = Math.floor(stop2 / 2) || 1
+
     let res = true
     while ((start1 <= stop1 || start2 <= stop2) && res) {
       let res1 = true
       if (start1 <= stop1) {
         const begin = '^[xu]*'
         const end = start1 === stop1 ? '[xu]*$' : ''
-        const reg1 = new RegExp(begin + regs1.slice(0, start1).map((v, i) => v + (i === start1 - 1 ? '' : '[xu]+')).join('') + end)
-        const reg2 = new RegExp(begin + regs2.slice(0, start1).map((v, i) => v + (i === start1 - 1 ? '' : '[xu]+')).join('') + end)
-        res1 = rowReverse ? (reg2.test(row2) && reg1.test(row1)) : (reg1.test(row1) && reg2.test(row2))
+        const reg = new RegExp(begin + rowReg.slice(0, start1).map((v, i) => v + (i === start1 - 1 ? '' : '[xu]+')).join('') + end)
+        res1 = reg.test(rows)
         start1 = start1 !== stop1 ? Math.min(start1 + 2, stop1) : start1 + 1
       }
 
       let res2 = true
-      if (start2 <= stop2) {
+      if (start2 <= stop2 && res1) {
         const begin = '^[xu]*'
         const end = start2 === stop2 ? '[xu]*$' : ''
-        const reg1 = new RegExp(begin + regs3.slice(0, start2).map((v, i) => v + (i === start2 - 1 ? '' : '[xu]+')).join('') + end)
-        const reg2 = new RegExp(begin + regs4.slice(0, start2).map((v, i) => v + (i === start2 - 1 ? '' : '[xu]+')).join('') + end)
-        res2 = columnReverse ? (reg2.test(column2) && reg1.test(column1)) : (reg1.test(column1) && reg2.test(column2))
+        const reg = new RegExp(begin + columnReg.slice(0, start2).map((v, i) => v + (i === start2 - 1 ? '' : '[xu]+')).join('') + end)
+        res2 = reg.test(columns)
         start2 = start2 !== stop2 ? Math.min(start2 + 2, stop2) : start2 + 1
       }
 
