@@ -246,8 +246,8 @@ class Nonograms {
 
     const stop1 = rowRegs[row].length
     const stop2 = columnRegs[column].length
-    let start1 = Math.floor(stop1 / 2) || 1
-    let start2 = Math.floor(stop2 / 2) || 1
+    let start1 = stop1
+    let start2 = stop2
 
     let res = true
     while ((start1 <= stop1 || start2 <= stop2) && res) {
