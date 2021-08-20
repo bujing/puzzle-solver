@@ -15,10 +15,9 @@ class Nonograms {
     this.numbers = numbers
     this.#rows = numbers[0].length
     this.#columns = numbers[1].length
-
-    const grid = Array(this.#rows).fill('').map(() => Array(this.#columns).fill('u'))
     this.toRegExp()
     this.duration = Date.now()
+    const grid = Array(this.#rows).fill('').map(() => Array(this.#columns).fill('u'))
     this.oxNaked(grid)
     this.oxHidden(grid)
     this.oxTest(grid)
@@ -226,53 +225,24 @@ class Nonograms {
 
   validate (grid, row, column) {
     const [rowRegs, columnRegs] = this.regexps
-    const rowReverse = column / this.#columns > 0.5
-    const columnReverse = row / this.#rows > 0.5
+    const rowReverse = Math.round(column / this.#columns)
+    const columnReverse = Math.round(row / this.#rows)
 
     let rows = grid[row].slice()
-    let rowReg = rowRegs[row].slice()
     if (rowReverse) {
       rows.reverse()
-      rowReg.reverse()
-    }
-    let columns = grid.map(v => v[column])
-    let columnReg = columnRegs[column].slice()
-    if (columnReverse) {
-      columns.reverse()
-      columnReg.reverse()
     }
     rows = rows.join('')
+    let columns = grid.map(v => v[column])
+    if (columnReverse) {
+      columns.reverse()
+    }
     columns = columns.join('')
 
-    const stop1 = rowRegs[row].length
-    const stop2 = columnRegs[column].length
-    let start1 = stop1
-    let start2 = stop2
-
-    let res = true
-    while ((start1 <= stop1 || start2 <= stop2) && res) {
-      let res1 = true
-      if (start1 <= stop1) {
-        const begin = '^[xu]*'
-        const end = start1 === stop1 ? '[xu]*$' : ''
-        const reg = new RegExp(begin + rowReg.slice(0, start1).map((v, i) => v + (i === start1 - 1 ? '' : '[xu]+')).join('') + end)
-        res1 = reg.test(rows)
-        start1 = start1 !== stop1 ? Math.min(start1 + 2, stop1) : start1 + 1
-      }
-
-      let res2 = true
-      if (start2 <= stop2 && res1) {
-        const begin = '^[xu]*'
-        const end = start2 === stop2 ? '[xu]*$' : ''
-        const reg = new RegExp(begin + columnReg.slice(0, start2).map((v, i) => v + (i === start2 - 1 ? '' : '[xu]+')).join('') + end)
-        res2 = reg.test(columns)
-        start2 = start2 !== stop2 ? Math.min(start2 + 2, stop2) : start2 + 1
-      }
-
-      res = res1 && res2
+    if (rowRegs[row][rowReverse].test(rows)) {
+      return columnRegs[column][columnReverse].test(columns)
     }
-
-    return res
+    return false
   }
 
   clone (grid) {
@@ -280,18 +250,22 @@ class Nonograms {
   }
 
   toRegExp () {
-    // o - filled
-    // x - crossed
-    // u - unlabeled
+    // o-filled x-crossed u-unlabeled
     this.numbers.forEach((numbers, i) => {
       const cellCount = i ? this.#columns : this.#rows
       for (let j = 0; j < cellCount; j++) {
         const number = numbers[j]
         const reg = []
         for (let k = 0; k < number.length; k++) {
-          reg.push('[uo]{' + number[k] + '}')
+          if (k) {
+            reg.push('[xu]+')
+          }
+          reg.push('[ou]{' + number[k] + '}')
         }
-        this.regexps[i][j] = reg
+        this.regexps[i][j] = [
+          new RegExp(`^[xu]*${reg.join('')}[xu]*$`),
+          new RegExp(`^[xu]*${reg.reverse().join('')}[xu]*$`)
+        ]
       }
     })
   }
