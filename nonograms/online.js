@@ -21,20 +21,19 @@ const reg = {
 
 let filename = 'record/history.txt'
 const ids = []
-for (let i = 2; i < process.argv.length; i++) {
-  if (process.argv[i]) {
-    ids.push(...process.argv[i].split(','))
-  }
-}
-if (ids[0] === 'catalog') {
-  filename = `record/p${ids[1]}_${Date.now()}.txt`
-  fetchList(ids[1])
+if (process.argv[2] === 'catalog') {
+  filename = `record/${process.argv[3]}_${Date.now()}.txt`
+  fetchList(process.argv[3])
 } else {
+  for (let i = 2; i < process.argv.length; i++) {
+    if (process.argv[i]) {
+      ids.push(...process.argv[i].split(','))
+    }
+  }
   solve(ids)
 }
 
 function fetchList (page) {
-  console.log(`\nBlack And White / Huge / P${page}`)
   reg.catitems.lastIndex = 0
   return new Promise(resolve => {
     https.get({
@@ -45,7 +44,6 @@ function fetchList (page) {
       res.on('data', chunk => buffer.push(chunk))
       res.on('end', () => {
         const bufferData = Buffer.concat(buffer).toString()
-        let ids = []
         let item
         while (item = reg.catitems.exec(bufferData)) {
           if (item[1]) {
@@ -59,16 +57,16 @@ function fetchList (page) {
 }
 
 function fetchItem (id) {
-  console.info(`${host}/${id}`)
   reg.left.lastIndex = 0
   reg.top.lastIndex = 0
   reg.tr.lastIndex = 0
   reg.td.lastIndex = 0
   return new Promise(resolve => {
-    https.get({
+    const req = https.get({
       host,
       path: `/${id}`
     }, res => {
+      console.info(`${host}/${id}`)
       const buffer = []
       res.on('data', chunk => buffer.push(chunk))
       res.on('end', () => {
@@ -106,25 +104,39 @@ function fetchItem (id) {
         resolve(numbers)
       })
     })
+
+    req.on('error', e => {
+      console.info('error', ids)
+      resolve()
+    })
   })
 }
 
 async function solve (ids) {
-  for (let i = 0; i < ids.length; i++) {
-    const id = ids[i]
+  const durations = []
+  while (ids[0]) {
+    const id = ids[0]
     const numbers = await fetchItem(id)
-    write(`\n${host}/${id} ${numbers[0].length}*${numbers[1].length} ${new Date().toLocaleDateString()}\n`)
-    console.info(JSON.stringify(numbers))
-    const res = new Nonograms(numbers)
-    if (res.solved) {
-      const nono = res.latest.map(row => row.join(' ').replace(/o/g, ' ').replace(/x/g, '■')) //  □
-      console.info(nono.join('\n'))
+    if (numbers) {
+      write(`\n${host}/${id} ${numbers[0].length}*${numbers[1].length} ${new Date().toLocaleDateString()}\n`)
+      console.info(JSON.stringify(numbers))
+      const res = new Nonograms(numbers)
+      if (res.solved) {
+        const nono = res.latest.map(row => row.join(' ').replace(/o/g, ' ').replace(/x/g, '■')) //  □
+        write(nono.join('\n'))
+      }
+      console.info(JSON.stringify(res.latest))
+      console.info(`${host}/${id} ${numbers[0].length}*${numbers[1].length} ${res.duration}`)
+      console.info('================================================================')
+      write(`\n${host}/${id} ${res.duration}ms\n`)
+      durations.push({
+        id,
+        duration: res.duration
+      })
+      ids.shift()
     }
-    console.info(JSON.stringify(res.latest))
-    console.info(`${host}/${id} ${numbers[0].length}*${numbers[1].length} ${res.duration}`)
-    console.info('================================================================')
-    write(`${host}/${id} ${res.duration}ms\n`)
   }
+  write('\n' + durations.sort((a, b) => b.duration - a.duration).map(v => v.id + ': ' + v.duration + 'ms').join('; '))
 }
 
 function write (text) {

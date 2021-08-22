@@ -111,7 +111,7 @@ class Nonograms {
     let loop = true
     while (loop) {
       this.#loopTime++
-      console.log(`round ${this.#loopTime}`, new Date().toTimeString().substr(0, 8) + '.' + new Date().getMilliseconds())
+      // console.log(`round ${this.#loopTime}`, new Date().toTimeString().substr(0, 8) + '.' + new Date().getMilliseconds())
       loop = false
       for (let row = 0; row < this.#rows; row++) {
         for (let column = 0; column < this.#columns; column++) {
@@ -124,15 +124,12 @@ class Nonograms {
               grid[row][column] = 'x'
 
               if (this.validate(grid, row, column)) { // x 校验通过
-                // console.log(row, column, 'u')
                 grid[row][column] = 'u'
               } else { // x 校验不通过，证明 o 是正解
-                // console.log(row, column, 'o')
                 grid[row][column] = 'o'
                 loop = true
               }
             } else { // o 校验不通过，证明 x 是正解
-              // console.log(row, column, 'o')
               grid[row][column] = 'x'
               loop = true
             }
