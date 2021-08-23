@@ -1,13 +1,9 @@
 // https://onlinenonograms.com/
 const https = require('https')
 const fs = require('fs')
+const { execSync } = require('child_process')
 const Nonograms = require('./v2oxtest')
 
-const log = console.log
-console.log = function (...val) {
-  write(val.join(' ') + '\n')
-  log(...val)
-}
 
 const host = 'onlinenonograms.com'
 
@@ -20,17 +16,25 @@ const reg = {
 }
 
 let filename = 'record/history.txt'
+let isCatalog = process.argv[2] === 'catalog'
 const ids = []
-if (process.argv[2] === 'catalog') {
-  filename = `record/${process.argv[3]}_${Date.now()}.txt`
-  fetchList(process.argv[3])
+if (isCatalog) {
+  const catalog = process.argv[3]
+  filename = `record/${catalog}_${Date.now()}.txt`
+  fetchList(catalog)
 } else {
-  for (let i = 2; i < process.argv.length; i++) {
+  isCatalog = process.argv[2] === 'catitem'
+  for (let i = (isCatalog ? 3 : 2); i < process.argv.length; i++) {
     if (process.argv[i]) {
       ids.push(...process.argv[i].split(','))
     }
   }
   solve(ids)
+}
+
+const log = function (...val) {
+  console.log(...val)
+  fs.appendFileSync(filename, val.join(' ') + '\n')
 }
 
 function fetchList (page) {
@@ -47,10 +51,12 @@ function fetchList (page) {
         let item
         while (item = reg.catitems.exec(bufferData)) {
           if (item[1]) {
-            ids.push(item[1])
+            // ids.push(item[1])
+            const res = execSync(`node online catitem ${item[1]}`, { stdio: [0, 'pipe', 2] })
+            log(res.toString())
           }
         }
-        solve(ids)
+        // solve(ids)
       })
     })
   })
@@ -66,7 +72,6 @@ function fetchItem (id) {
       host,
       path: `/${id}`
     }, res => {
-      console.info(`${host}/${id}`)
       const buffer = []
       res.on('data', chunk => buffer.push(chunk))
       res.on('end', () => {
@@ -106,39 +111,31 @@ function fetchItem (id) {
     })
 
     req.on('error', e => {
-      console.info('error', ids)
       resolve()
     })
   })
 }
 
 async function solve (ids) {
-  const durations = []
   while (ids[0]) {
     const id = ids[0]
     const numbers = await fetchItem(id)
     if (numbers) {
-      write(`\n${host}/${id} ${numbers[0].length}*${numbers[1].length} ${new Date().toLocaleDateString()}\n`)
-      console.info(JSON.stringify(numbers))
       const res = new Nonograms(numbers)
+      if (!isCatalog) {
+        console.log(JSON.stringify(numbers))
+        console.log(JSON.stringify(res.latest))
+      }
+      console.log(`${host}/${id} ${numbers[0].length}*${numbers[1].length} ${res.duration}ms`)
       if (res.solved) {
         const nono = res.latest.map(row => row.join(' ').replace(/o/g, ' ').replace(/x/g, '■')) //  □
-        write(nono.join('\n'))
+        console.log(nono.join('\n'))
       }
-      console.info(JSON.stringify(res.latest))
-      console.info(`${host}/${id} ${numbers[0].length}*${numbers[1].length} ${res.duration}`)
-      console.info('================================================================')
-      write(`\n${host}/${id} ${res.duration}ms\n`)
-      durations.push({
-        id,
-        duration: res.duration
-      })
       ids.shift()
     }
   }
-  write('\n' + durations.sort((a, b) => b.duration - a.duration).map(v => v.id + ': ' + v.duration + 'ms').join('; '))
 }
 
 function write (text) {
-  fs.appendFileSync(filename, text)
+  
 }
