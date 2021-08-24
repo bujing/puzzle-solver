@@ -4,7 +4,6 @@ const fs = require('fs')
 const { execSync } = require('child_process')
 const Nonograms = require('./v2oxtest')
 
-
 const host = 'onlinenonograms.com'
 
 const reg = {
