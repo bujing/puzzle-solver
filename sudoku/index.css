@@ -2,6 +2,12 @@ body {
   background-color: #e8e8e8;
 }
 
+.sudoku {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto 1fr;
+}
+
 .grid tr:nth-child(3n):not(:last-child) {
   border-bottom: 2px solid #333;
 }
@@ -20,22 +26,6 @@ body {
   width: 48px;
 }
 
-.candidates {
-  color: #38f;
-  font-size: 12px;
-  left: 0;
-  position: absolute;
-  right: 0;
-  top: 0;
-}
-.candidates-item {
-  flex: 0 0 33.33%;
-  height: 33.33%;
-}
-
-.btn {
-  width: 472px;
-}
 .btn button {
   display: block;
   height: 36px;

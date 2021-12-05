@@ -53,7 +53,7 @@
       }, [])
 
       return (
-        <Fragment>
+        <div className="sudoku">
           <table className="grid">
             <tbody>
               {(lock ? grid : base).map((r, i) => (
@@ -74,11 +74,14 @@
               ))}
             </tbody>
           </table>
+          <div></div>
+
           <div className="btn">
             <button className="button-black" onClick={solution}>解题</button>
             <button className="button-white" onClick={reset}>重置</button>
           </div>
-        </Fragment>
+          <div></div>
+        </div>
       )
     }
 

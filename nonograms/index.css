@@ -17,10 +17,6 @@ body {
 .vertical tr:nth-child(5n):not(:last-child) {
   border-bottom: 2px solid transparent;
 }
-.vertical td {
-  display: flex;
-  justify-content: flex-end;
-}
 
 .grid tr:nth-child(5n):not(:last-child) {
   border-bottom: 2px solid #333;
@@ -30,18 +26,15 @@ body {
 }
 
 .cell {
-  font-size: 12px;
   height: 16px;
   line-height: 16px;
   min-width: 16px;
   padding: 0;
   position: relative;
-  text-align: center;
 }
 .cell input {
   height: 12px;
   padding: 0;
-  text-align: center;
   vertical-align: top;
   width: 12px;
 }
@@ -65,14 +58,9 @@ body {
 
 .btn button {
   display: block;
-  font-size: 14px;
-  height: 32px;
-  line-height: 30px;
+  height: 36px;
+  line-height: 34px;
   margin-top: 10px;
   padding: 0;
   width: 100%;
-}
-
-.textarea {
-  font-size: 12px;
 }
