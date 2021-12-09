@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Nonograms Solver</title>
+  <link rel="stylesheet" href="https://unpkg.zhimg.com/poplar-css@latest/dist/poplar.css">
+  <style>
+    .puzzle { display: grid; grid-template-columns: auto auto 1fr; grid-template-rows: auto auto 1fr; line-height: 16px; }
+    .horizontal:nth-child(5n):not(:last-child) { border-right: 2px solid transparent; }
+    .vertical:nth-child(5n):not(:last-child) { border-bottom: 2px solid transparent; }
+    .row:nth-child(5n):not(:last-child) { border-bottom: 2px solid #333; }
+    .column:nth-child(5n):not(:last-child) { border-right: 2px solid #333; }
+    .cell { box-sizing: border-box; height: 16px; width: 16px; }
+    .c1 { background-color: #333; }
+    button[class^=button-] { margin-top: 10px; }
+  </style>
+</head>
+<body>
+
+  <div id="root"></div>
+
+  <!-- <script src="v0candidate.js"></script> -->
+  <!-- <script src="v1exhaustive.js"></script> -->
+  <script src="v2oxtest.js"></script>
+  <script src="puzzles.js"></script>
+  <script>
+    // puzzles.slice(0, 15).forEach(item => console.log(new Nonograms(item)))
+  </script>
+  <script src="https://unpkg.zhimg.com/react/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.zhimg.com/react-dom/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.zhimg.com/babel-standalone/babel.min.js"></script>
+  <script type="text/babel">
+    const { Fragment, useState, useEffect, useCallback } = React
+
+    const App = () => {
+      const [numbers, setNumbers] = useState(puzzles[5])
+      const [grid, setGrid] = useState(() => {
+        return Array(numbers[0].length).fill('').map(() => Array(numbers[1].length).fill('u'))
+      })
+
+      const [inputNumbers, setInputNumbers] = useState('')
+      const submit = useCallback(() => {
+        if (inputNumbers) {
+          const numbers = JSON.parse(inputNumbers)
+          setNumbers(numbers)
+          setGrid(Array(numbers[0].length).fill('').map(() => Array(numbers[1].length).fill('u')))
+        }
+      }, [inputNumbers])
+
+      const solve = useCallback(() => {
+        const pause = false
+        const nono = new Nonograms(numbers, 10000, pause)
+        setGrid(nono.latest)
+        if (!pause) {
+          const t = window.setInterval(() => {
+            setGrid(nono.latest)
+            if (nono.solved) {
+              window.clearInterval(t)
+              console.log(nono)
+            }
+          }, 100)
+        }
+      }, [numbers])
+
+      const reset = useCallback(() => {
+        setNumbers([[], []])
+        setGrid([[], []])
+      }, [])
+
+      return (
+        <div className="puzzle text-xs text-center">
+          <div></div>
+          <div className="flex">
+            {numbers[1].map((item, i) => (
+              <div key={i} className="horizontal flex-column main-content-end">
+                {item.map((num, j) => (
+                  <div key={j} className="cell">{num}</div>
+                ))}
+              </div>
+            ))}
+          </div>
+          <div></div>
+
+          <div className="flex-column">
+            {numbers[0].map((item, i) => (
+              <div key={i} className="vertical flex main-content-end">
+                {item.map((num, j) => (
+                  <div key={j} className="cell">{num}</div>
+                ))}
+              </div>
+            ))}
+          </div>
+          {(numbers[0].length && numbers[1].length) ? (
+            <div className="flex-column">
+              {grid.map((r, i) => (
+                <div key={i} className="row flex">
+                  {r.map((c, j) => (
+                    <div key={j} className="column">
+                      <input className={`cell ${c === 'o' ? 'c1' : ''}`} readOnly />
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+           ) : (
+            <textarea
+              placeholder={`[
+  [
+    [3], [3, 1], [1, 2], [1, 1], [1]
+  ],
+  [
+    [3], [2], [2, 1], [1], [4]
+  ]
+]`}
+              rows="10"
+              cols="80"
+              onChange={e => setInputNumbers(e.target.value)}
+            />
+          )}
+          <div></div>
+
+          <div></div>
+          {numbers[0].length && numbers[1].length
+            ? <button className="button-black button-sm radius-sm" onClick={solve}>解题</button>
+            : <button className="button-black button-sm radius-sm" onClick={submit}>确定</button>}
+          <div></div>
+
+          <div></div>
+          <button className="button-white button-sm radius-sm" onClick={reset}>重置</button>
+          <div></div>
+        </div>
+      )
+    }
+
+    ReactDOM.render(<App />, document.querySelector('#root'))
+  </script>
+
+</body>
+</html>

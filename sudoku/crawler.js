@@ -1,4 +1,4 @@
-// https://nine.websudoku.com/
+// target: https://nine.websudoku.com/
 const https = require('https')
 const fs = require('fs')
 const Sudoku = require('./sudoku')
@@ -11,7 +11,7 @@ const reg = {
   input: /<input[^>]*value="(\d)"[^>]*>/gi
 }
 
-let filename = 'record/history.txt'
+let filename = 'record.txt'
 const ids = []
 const start = Number(process.argv[2]) || 1
 const end = Number(process.argv[3]) || (start + 1)

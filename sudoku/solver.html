@@ -3,8 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <title>Sudoku Solver</title>
-  <link rel="stylesheet" href="https://unpkg.zhimg.com/poplar-css/dist/poplar.css">
-  <link rel="stylesheet" href="index.css">
+  <link rel="stylesheet" href="https://unpkg.zhimg.com/poplar-css@latest/dist/poplar.css">
+  <style>
+    .puzzle { display: grid; gap: 10px; grid-template-columns: auto 1fr; grid-template-rows: auto auto 1fr; }
+    .row:nth-child(3n):not(:last-child) { border-bottom: 2px solid #333; }
+    .column:nth-child(3n):not(:last-child) { border-right: 2px solid #333; }
+    .cell { box-sizing: border-box; height: 24px; width: 24px; }
+  </style>
 </head>
 <body>
 
@@ -53,33 +58,30 @@
       }, [])
 
       return (
-        <div className="sudoku">
-          <table className="grid">
-            <tbody>
-              {(lock ? grid : base).map((r, i) => (
-                <tr key={i}>
-                  {r.map((c, j) => (
-                    <td key={j} className="cell">
-                      <input
-                        className="text-center"
-                        disabled={lock && base[i][j] && base[i][j] === c}
-                        type="text"
-                        value={(c && !Array.isArray(c)) ? c : ''}
-                        maxLength="1"
-                        onChange={e => updateCellValue(i, j, e.currentTarget.value)}
-                      />
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="puzzle text-xs">
+          <div className="flex-column">
+            {(lock ? grid : base).map((r, i) => (
+              <div key={i} className="row flex">
+                {r.map((c, j) => (
+                  <div key={j} className="column">
+                    <input
+                      className="cell text-center"
+                      disabled={lock && base[i][j] && base[i][j] === c}
+                      value={(c && !Array.isArray(c)) ? c : ''}
+                      maxLength="1"
+                      onChange={e => updateCellValue(i, j, e.currentTarget.value)}
+                    />
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
           <div></div>
 
-          <div className="btn">
-            <button className="button-black" onClick={solution}>解题</button>
-            <button className="button-white" onClick={reset}>重置</button>
-          </div>
+          <button className="button-black button-sm radius-sm" onClick={solution}>解题</button>
+          <div></div>
+
+          <button className="button-white button-sm radius-sm" onClick={reset}>重置</button>
           <div></div>
         </div>
       )

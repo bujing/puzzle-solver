@@ -1,4 +1,4 @@
-// https://onlinenonograms.com/
+// target: https://onlinenonograms.com/
 const https = require('https')
 const fs = require('fs')
 const { execSync } = require('child_process')
@@ -14,12 +14,12 @@ const reg = {
   td: /<td[^>]*>(.*?)<\/td>/g
 }
 
-let filename = 'record/history.txt'
+let filename = 'record.txt'
 let isCatalog = process.argv[2] === 'catalog'
 const ids = []
 if (isCatalog) {
   const catalog = process.argv[3]
-  filename = `record/${catalog}_${Date.now()}.txt`
+  filename = `record_${catalog}_${Date.now()}.txt`
   fetchList(catalog)
 } else {
   isCatalog = process.argv[2] === 'catitem'
@@ -51,7 +51,7 @@ function fetchList (page) {
         while (item = reg.catitems.exec(bufferData)) {
           if (item[1]) {
             // ids.push(item[1])
-            const res = execSync(`node online catitem ${item[1]}`, { stdio: [0, 'pipe', 2] })
+            const res = execSync(`node crawler catitem ${item[1]}`, { stdio: [0, 'pipe', 2] })
             log(res.toString())
           }
         }
@@ -133,8 +133,4 @@ async function solve (ids) {
       ids.shift()
     }
   }
-}
-
-function write (text) {
-  
 }
