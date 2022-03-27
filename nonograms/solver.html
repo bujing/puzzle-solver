@@ -3,15 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <title>Nonograms Solver</title>
-  <link rel="stylesheet" href="https://unpkg.zhimg.com/poplar-css@latest/dist/poplar.css">
+  <link rel="stylesheet" href="https://unpkg.com/poplar-css@latest/dist/poplar.css">
   <style>
-    .puzzle { display: grid; grid-template-columns: auto auto 1fr; grid-template-rows: auto auto 1fr; line-height: 16px; }
+    .puzzle { display: grid; grid-template-columns: auto auto 1fr; grid-template-rows: auto auto 1fr; line-height: 20px; }
     .horizontal:nth-child(5n):not(:last-child) { border-right: 2px solid transparent; }
     .vertical:nth-child(5n):not(:last-child) { border-bottom: 2px solid transparent; }
     .row:nth-child(5n):not(:last-child) { border-bottom: 2px solid #333; }
     .column:nth-child(5n):not(:last-child) { border-right: 2px solid #333; }
-    .cell { box-sizing: border-box; height: 16px; width: 16px; }
-    .c1 { background-color: #333; }
+    .cell { box-sizing: border-box; color: #fff; height: 20px; vertical-align: top; width: 20px; }
     button[class^=button-] { margin-top: 10px; }
   </style>
 </head>
@@ -21,35 +20,42 @@
 
   <!-- <script src="v0candidate.js"></script> -->
   <!-- <script src="v1exhaustive.js"></script> -->
-  <script src="v2oxtest.js"></script>
+  <!-- <script src="v2oxtest.js"></script> -->
+  <script src="v3colored.js"></script>
   <script src="puzzles.js"></script>
   <script>
     // puzzles.slice(0, 15).forEach(item => console.log(new Nonograms(item)))
   </script>
-  <script src="https://unpkg.zhimg.com/react/umd/react.development.js" crossorigin></script>
-  <script src="https://unpkg.zhimg.com/react-dom/umd/react-dom.development.js" crossorigin></script>
-  <script src="https://unpkg.zhimg.com/babel-standalone/babel.min.js"></script>
+  <script src="https://unpkg.com/react/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/babel-standalone/babel.min.js"></script>
   <script type="text/babel">
     const { Fragment, useState, useEffect, useCallback } = React
 
     const App = () => {
-      const [numbers, setNumbers] = useState(puzzles[5])
+      const [color, setColor] = useState(colors[27] || { A: '#000000' })
+      const [numbers, setNumbers] = useState(puzzles[27])
       const [grid, setGrid] = useState(() => {
         return Array(numbers[0].length).fill('').map(() => Array(numbers[1].length).fill('u'))
       })
 
-      const [inputNumbers, setInputNumbers] = useState('')
+      const [inputColor, setInputColor] = useState('')
+      const [inputNumber, setInputNumber] = useState('')
       const submit = useCallback(() => {
-        if (inputNumbers) {
-          const numbers = JSON.parse(inputNumbers)
+        if (inputColor) {
+          const color = JSON.parse(inputColor)
+          setColor(color)
+        }
+        if (inputNumber) {
+          const numbers = JSON.parse(inputNumber)
           setNumbers(numbers)
           setGrid(Array(numbers[0].length).fill('').map(() => Array(numbers[1].length).fill('u')))
         }
-      }, [inputNumbers])
+      }, [inputColor, inputNumber])
 
       const solve = useCallback(() => {
         const pause = false
-        const nono = new Nonograms(numbers, 10000, pause)
+        const nono = new Nonograms(numbers, color, 10000, pause)
         setGrid(nono.latest)
         if (!pause) {
           const t = window.setInterval(() => {
@@ -68,14 +74,18 @@
       }, [])
 
       return (
-        <div className="puzzle text-xs text-center">
+        <div className="puzzle text-sm text-center">
           <div></div>
           <div className="flex">
             {numbers[1].map((item, i) => (
               <div key={i} className="horizontal flex-column main-content-end">
-                {item.map((num, j) => (
-                  <div key={j} className="cell">{num}</div>
-                ))}
+                {item.map((num, j) => {
+                  if (/^[a-z]/i.test(num)) {
+                    return <div key={j} className="cell" style={{ backgroundColor: color[num[0]] }}>{num.substring(1)}</div>
+                  } else {
+                    return <div key={j} className="cell" style={{ color: "#000" }}>{num}</div>
+                  }
+                })}
               </div>
             ))}
           </div>
@@ -84,9 +94,13 @@
           <div className="flex-column">
             {numbers[0].map((item, i) => (
               <div key={i} className="vertical flex main-content-end">
-                {item.map((num, j) => (
-                  <div key={j} className="cell">{num}</div>
-                ))}
+                {item.map((num, j) => {
+                  if (/^[a-z]/i.test(num)) {
+                    return <div key={j} className="cell" style={{ backgroundColor: color[num[0]] }}>{num.substring(1)}</div>
+                  } else {
+                    return <div key={j} className="cell" style={{ color: "#000" }}>{num}</div>
+                  }
+                })}
               </div>
             ))}
           </div>
@@ -96,26 +110,25 @@
                 <div key={i} className="row flex">
                   {r.map((c, j) => (
                     <div key={j} className="column">
-                      <input className={`cell ${c === 'o' ? 'c1' : ''}`} readOnly />
+                      <input className="cell" style={{ backgroundColor: color[c] }} readOnly />
                     </div>
                   ))}
                 </div>
               ))}
             </div>
            ) : (
-            <textarea
-              placeholder={`[
-  [
-    [3], [3, 1], [1, 2], [1, 1], [1]
-  ],
-  [
-    [3], [2], [2, 1], [1], [4]
-  ]
-]`}
-              rows="10"
-              cols="80"
-              onChange={e => setInputNumbers(e.target.value)}
-            />
+             <div>
+              <textarea style={{ display: "block" }} cols="80" onChange={e => setInputColor(e.target.value)} />
+              <textarea
+                placeholder={`[
+    [[3], [3, 1], [1, 2], [1, 1], [1]],
+    [[3], [2], [2, 1], [1], [4]]
+  ]`}
+                rows="10"
+                cols="80"
+                onChange={e => setInputNumber(e.target.value)}
+              />
+            </div>
           )}
           <div></div>
 
