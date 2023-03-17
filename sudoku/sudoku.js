@@ -4,6 +4,8 @@ class Sudoku {
   duration = 0 // 耗时
   errorMessage = '' // 错误信息
   #grid = [] // 盘面
+  #step = [] // 解谜步骤
+  #stepIndex = 0 // 步骤计数
   #loop = false // 是否循环执行
   #backtracking = false // 是否需要回溯
   #tryAndError = [] // 试数
@@ -37,6 +39,15 @@ class Sudoku {
   // 明数总数
   get valueCount () {
     return this.latest.flat().filter(value => value && !Array.isArray(value)).length
+  }
+
+  get baseValueCount () {
+    return this.base.flat().filter(Boolean).length
+  }
+
+  // 更新解谜步骤
+  set step ({ value, row, column, remark }) {
+    this.#step[row * 9 + column] = { index: this.#stepIndex, value, remark }
   }
 
   // 最新盘面
@@ -80,6 +91,7 @@ class Sudoku {
           this.#grid.push(newGrid)
         }
       } while (this.#loop)
+      this.#stepIndex = this.valueCount - this.baseValueCount
 
       if (this.valueCount < 81) {
         if (this.#backtracking) {
@@ -94,6 +106,8 @@ class Sudoku {
               const newGrid = this.forEach(this.#grid[grid - 1], v => v)
               newGrid[row][column] = value[index + 1]
               this.#grid.push(newGrid)
+              this.#stepIndex = this.valueCount - this.baseValueCount
+              this.step = { row, column, value: value[index + 1], remark: "回溯" }
               break
             }
           }
@@ -114,6 +128,8 @@ class Sudoku {
           const newGrid = this.forEach(this.latest, v => v)
           newGrid[row][column] = value[0]
           this.#grid.push(newGrid)
+          this.#stepIndex = this.valueCount - this.baseValueCount
+          this.step = { row, column, value: value[0], remark: "试数" }
         }
       }
     }
@@ -149,6 +165,8 @@ class Sudoku {
         if (candidates.some(candidate => candidate.filter(v => v === value[i]).length === 1)) {
           this.#loop = true
           value = value[i]
+          this.#stepIndex++
+          this.step = { row, column, value, remark: "唯一" }
           break
         }
       }
@@ -218,6 +236,10 @@ class Sudoku {
       }
       const clues = Array.from(new Set(this.peer(grid, row, column).filter(v => v && !Array.isArray(v))))
       const candidates = [1, 2, 3, 4, 5, 6, 7, 8, 9].filter(v => clues.indexOf(v) === -1)
+      if (candidates.length === 1) {
+        this.#stepIndex++
+        this.step = { row, column, value: candidates[0], remark: "候选" }
+      }
       return candidates.length === 1 ? candidates[0] : candidates
     })
   }
