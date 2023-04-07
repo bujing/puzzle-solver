@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Sudoku Solver</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/poplar-css@latest/dist/poplar.css"
+    />
+    <style>
+      .puzzle {
+        display: grid;
+        gap: 10px;
+        grid-template-columns: auto 108px 1fr;
+      }
+      .grid {
+        position: relative;
+        width: 324px;
+      }
+      .grid .lr::before,
+      .grid .lr::after {
+        background-color: #666;
+        content: "";
+        height: 2px;
+        width: 100%;
+        position: absolute;
+        left: 0;
+        top: 33.33%;
+      }
+      .grid .lr::after {
+        top: 66.66%;
+      }
+      .grid .tb::before,
+      .grid .tb::after {
+        background-color: #666;
+        content: "";
+        height: 100%;
+        width: 2px;
+        position: absolute;
+        left: 33.33%;
+        top: 0;
+      }
+      .grid .tb::after {
+        left: 66.66%;
+      }
+      .cell {
+        border: 1px solid #ccc;
+        box-sizing: border-box;
+        height: 36px;
+        width: 36px;
+      }
+      .small {
+        color: #666;
+        height: 33.33%;
+        line-height: 1;
+        width: 33.33%;
+      }
+      .large {
+        font-size: 15px;
+        font-weight: bolder;
+        height: 100%;
+        width: 100%;
+        position: relative;
+      }
+      .tag {
+        position: absolute;
+        right: 0;
+        top: 0;
+        font-size: 12px;
+        font-weight: normal;
+        background-color: #999;
+        color: #fff;
+        height: 40%;
+        width: 40%;
+      }
+
+      .button [class^="button"] {
+        margin-bottom: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script src="sudoku2.js"></script>
+    <script src="puzzles.js"></script>
+    <script>
+      // puzzles.forEach(item => console.log(new Sudoku(item)))
+    </script>
+    <script
+      src="https://unpkg.com/react/umd/react.development.js"
+      crossorigin
+    ></script>
+    <script
+      src="https://unpkg.com/react-dom/umd/react-dom.development.js"
+      crossorigin
+    ></script>
+    <script src="https://unpkg.com/babel-standalone/babel.min.js"></script>
+    <script type="text/babel">
+      const { Fragment, useState, useEffect, useCallback } = React;
+
+      let sudoku = null;
+
+      const App = () => {
+        const [grid, setGrid] = useState([]);
+
+        useEffect(() => {
+          sudoku = new Sudoku(puzzles[0]);
+          setGrid(sudoku.grid.slice());
+        }, []);
+
+        // 显式唯一法
+        const handleNakedSingle = () => {
+          const current = sudoku.nakedSingle();
+          if (current === -1) {
+            console.log("显式唯一法：没有合适的解");
+          } else {
+            console.log("显式唯一法", sudoku.steps[current]);
+          }
+        };
+        // 隐式唯一法
+        const handleHiddenSingle = () => {
+          const current = sudoku.hiddenSingle();
+          if (current === -1) {
+            console.log("隐式唯一法：没有合适的解");
+          } else {
+            setGrid(sudoku.grid.slice());
+            console.log("隐式唯一法", current, sudoku.steps[current]);
+          }
+        };
+
+        return (
+          <div className="puzzle text-xs">
+            <div className="grid flex flex-wrap">
+              {grid.map((cell, i) => (
+                <div key={i} className="cell flex flex-wrap">
+                  {Array.isArray(cell) ? (
+                    <Fragment>
+                      {Array(9)
+                        .fill()
+                        .map((v, j) => (
+                          <div
+                            key={j}
+                            className="small flex main-content-center cross-items-center"
+                          >
+                            {cell.includes(j + 1) ? j + 1 : ""}
+                          </div>
+                        ))}
+                    </Fragment>
+                  ) : (
+                    <div className="large flex main-content-center cross-items-center">
+                      {cell || ""}
+                      {sudoku && sudoku.steps[i].index > 0 && (
+                        <div className="tag flex main-content-center cross-items-center">
+                          {sudoku.steps[i].index}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+              <div className="lr"></div>
+              <div className="tb"></div>
+            </div>
+            <div className="button">
+              <button
+                className="button-black button-sm radius-sm"
+                onClick={handleNakedSingle}
+              >
+                显式唯一法
+              </button>
+              <button
+                className="button-black button-sm radius-sm"
+                onClick={handleHiddenSingle}
+              >
+                隐式唯一法
+              </button>
+            </div>
+          </div>
+        );
+      };
+
+      ReactDOM.render(<App />, document.querySelector("#root"));
+    </script>
+  </body>
+</html>
