@@ -10,8 +10,8 @@
     <style>
       .puzzle {
         display: grid;
-        gap: 10px;
-        grid-template-columns: auto 108px 1fr;
+        grid-template-columns: 36px auto 108px 1fr;
+        grid-template-rows: 36px auto;
       }
       .grid {
         position: relative;
@@ -43,6 +43,12 @@
       .grid .tb::after {
         left: 66.66%;
       }
+      .head {
+        font-size: 15px;
+        font-weight: bolder;
+        height: 36px;
+        width: 36px;
+      }
       .cell {
         border: 1px solid #ccc;
         box-sizing: border-box;
@@ -56,24 +62,31 @@
         width: 33.33%;
       }
       .large {
-        font-size: 15px;
+        font-size: 16px;
         font-weight: bolder;
         height: 100%;
         width: 100%;
         position: relative;
       }
-      .tag {
+      .index {
         position: absolute;
         right: 0;
         top: 0;
-        font-size: 12px;
+        font-size: 18px;
         font-weight: normal;
-        background-color: #999;
-        color: #fff;
-        height: 40%;
-        width: 40%;
+        line-height: 24px;
+        color: #000;
+        transform: scale(0.5);
+        transform-origin: right top;
+        height: 24px;
+        width: 24px;
+        background-color: rgba(255, 0, 0, 0.3);
+        border-bottom-left-radius: 50%;
       }
 
+      .button {
+        padding-left: 10px;
+      }
       .button [class^="button"] {
         margin-bottom: 10px;
       }
@@ -103,6 +116,8 @@
 
       const App = () => {
         const [grid, setGrid] = useState([]);
+        const [current, setCurrent] = useState(-1);
+        const [active, setActive] = useState([]);
 
         useEffect(() => {
           sudoku = new Sudoku(puzzles[0]);
@@ -125,15 +140,63 @@
             console.log("隐式唯一法：没有合适的解");
           } else {
             setGrid(sudoku.grid.slice());
-            console.log("隐式唯一法", current, sudoku.steps[current]);
+
+            const step = sudoku.steps[current];
+            const value = sudoku.grid[current];
+            setCurrent(value);
+            setActive(step.other);
+            console.log(
+              step.index +
+                ". " +
+                sudoku.getCellNamed(current) +
+                "单元格使用隐式唯一法得到解：" +
+                value
+            );
+            console.log(
+              step.other.map((v) => sudoku.getCellNamed(v)).join("/") +
+                " 均不可以填入数字" +
+                value
+            );
           }
         };
 
         return (
           <div className="puzzle text-xs">
+            <div></div>
+            <div className="flex">
+              {Array(9)
+                .fill()
+                .map((v, i) => (
+                  <div
+                    key={i}
+                    className="head flex main-content-center cross-items-center"
+                  >
+                    {i + 1}
+                  </div>
+                ))}
+            </div>
+            <div></div>
+            <div></div>
+
+            <div className="flex flex-column">
+              {"ABCDEFGHI".split("").map((v) => (
+                <div
+                  key={v}
+                  className="head flex main-content-center cross-items-center"
+                >
+                  {v}
+                </div>
+              ))}
+            </div>
             <div className="grid flex flex-wrap">
               {grid.map((cell, i) => (
-                <div key={i} className="cell flex flex-wrap">
+                <div
+                  key={i}
+                  className="cell flex flex-wrap"
+                  style={{
+                    backgroundColor: active.includes(i) ? "#e8e8e8" : "",
+                  }}
+                >
                   {Array.isArray(cell) ? (
                     <Fragment>
                       {Array(9)
@@ -142,16 +205,20 @@
                           <div
                             key={j}
                             className="small flex main-content-center cross-items-center"
+                            style={{ display: "none" }}
                           >
                             {cell.includes(j + 1) ? j + 1 : ""}
                           </div>
                         ))}
                     </Fragment>
                   ) : (
-                    <div className="large flex main-content-center cross-items-center">
+                    <div
+                      className="large flex main-content-center cross-items-center"
+                      style={{ color: current === cell ? "red" : "" }}
+                    >
                       {cell || ""}
                       {sudoku && sudoku.steps[i].index > 0 && (
-                        <div className="tag flex main-content-center cross-items-center">
+                        <div className="index flex main-content-center cross-items-center">
                           {sudoku.steps[i].index}
                         </div>
                       )}

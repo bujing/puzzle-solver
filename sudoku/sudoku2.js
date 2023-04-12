@@ -57,6 +57,13 @@ class Sudoku {
     return typeof this.grid[index] === "number";
   }
 
+  getCellNamed(index) {
+    const letters = 'ABCDEFGHI'
+    const letter = Math.floor(index / 9)
+    const number = index % 9 + 1
+    return letters[letter] + number
+  }
+
   // 按指定单元格下标索引获取其所在的行、列或宫的所有单元格的下标索引
   getRegionByIndex(index, type = "box") {
     if (type === "box") {
@@ -89,11 +96,7 @@ class Sudoku {
   getCandidates(grid) {
     grid.forEach((value, index) => {
       if (value) {
-        this.steps[index] = {
-          index: this.#stepIndex,
-          value,
-          remark: "提示数",
-        };
+        this.steps[index] = { index: this.#stepIndex, solve: 0 };
         this.grid[index] = value;
       } else {
         const candidates = Array(this.gridSize + 1)
@@ -109,18 +112,15 @@ class Sudoku {
             }
           });
         });
-        this.steps[index] = {
-          index: -1,
-          value: candidates.filter(Boolean),
-          other,
-        };
         this.grid[index] = candidates.filter(Boolean);
+        this.steps[index] = { index: -1, other };
       }
     });
   }
 
   // 删除候选数
-  delCandidates(value, index) {
+  delCandidates(index) {
+    const value = this.grid[index];
     this.#regions.forEach((region) => {
       const indexs = this.getRegionByIndex(index, region);
       indexs.forEach((i) => {
@@ -139,13 +139,12 @@ class Sudoku {
       if (this.filledChecker(i)) continue;
       if (this.grid[i].length === 1) {
         // 填入唯一候选数
-        this.grid[i] = value[0];
+        this.grid[i] = this.grid[i][0];
         // 更新填数步骤
         this.steps[i].index = ++this.#stepIndex;
-        this.steps[i].value = value[0];
-        this.steps[i].remark = "显式唯一法：单元格中只有一个候选数";
+        this.steps[i].solve = 1;
         // 从其所在行、列和宫的其他单元格的候选数中删除
-        this.delCandidates(value[0], i);
+        this.delCandidates(i);
         current = i;
         break;
       }
@@ -176,10 +175,10 @@ class Sudoku {
           this.grid[i] = value[0];
           // 更新填数步骤
           this.steps[i].index = ++this.#stepIndex;
-          this.steps[i].value = value[0];
-          this.steps[i].remark = "隐式唯一法：候选数只出现在一个单元格中";
+          this.steps[i].solve = 2;
+          this.steps[i].other = indexs.filter(v => !this.filledChecker(v));
           // 从其所在行、列和宫的其他单元格的候选数中删除
-          this.delCandidates(value[0], i);
+          this.delCandidates(i);
           current = i;
           break;
         }
