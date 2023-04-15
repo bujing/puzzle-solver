@@ -36,11 +36,14 @@ class Sudoku {
 
     this.checker(grid);
     this.getCandidates(grid);
-    // while (this.#loop) {
-    //   this.#loop = false;
-    //   this.nakedSingle();
-    //   this.hiddenSingle();
-    // }
+    let current = -1;
+    do {
+      current = this.nakedSingle();
+    } while (current > -1);
+    current = -1;
+    do {
+      current = this.hiddenSingle();
+    } while (current > -1);
     console.log(this.steps);
     console.log(this.grid);
   }
@@ -58,10 +61,10 @@ class Sudoku {
   }
 
   getCellNamed(index) {
-    const letters = 'ABCDEFGHI'
-    const letter = Math.floor(index / 9)
-    const number = index % 9 + 1
-    return letters[letter] + number
+    const letters = "ABCDEFGHI";
+    const letter = Math.floor(index / 9);
+    const number = (index % 9) + 1;
+    return letters[letter] + number;
   }
 
   // 按指定单元格下标索引获取其所在的行、列或宫的所有单元格的下标索引
@@ -176,7 +179,7 @@ class Sudoku {
           // 更新填数步骤
           this.steps[i].index = ++this.#stepIndex;
           this.steps[i].solve = 2;
-          this.steps[i].other = indexs.filter(v => !this.filledChecker(v));
+          this.steps[i].other = indexs.filter((v) => !this.filledChecker(v));
           // 从其所在行、列和宫的其他单元格的候选数中删除
           this.delCandidates(i);
           current = i;
@@ -190,7 +193,81 @@ class Sudoku {
   }
 
   // 区块删减法
-  intersectionRemoval() {}
+  intersectionRemoval() {
+    const boxCell = Array(this.gridSize)
+      .fill()
+      .map(() => []);
+    const rowCell = Array(this.gridSize)
+      .fill()
+      .map(() => []);
+    const columnCell = Array(this.gridSize)
+      .fill()
+      .map(() => []);
+    const cells = [];
+    for (let i = 0; i < this.cellCount; i++) {
+      if (this.filledChecker(i)) continue;
+      const row = Math.floor(i / this.gridSize);
+      const column = i % this.gridSize;
+      const box =
+        (Math.floor(row / this.boxSize[0]) * this.gridSize) / this.boxSize[0] +
+        Math.floor(column / this.boxSize[1]);
+
+      boxCell[box].push(i);
+      rowCell[row].push(i);
+      columnCell[column].push(i);
+      cells.push({
+        index: i,
+        value: this.grid[i],
+        box: boxCell[box],
+        row: rowCell[row],
+        column: columnCell[column],
+      });
+    }
+    cells.forEach((cell) => {
+      // 遍历单元格候选数
+      cell.value.forEach((value) => {
+        console.log(this.getCellNamed(cell.index) + " 单元格，候选数 " + value);
+        // 检查候选数是否在同宫同行的单元格出现
+        const isInBoxSameRow = cell.row
+          .filter((v) => cell.box.includes(v) && v !== cell.index)
+          .some((v) => this.grid[v].includes(value));
+        if (isInBoxSameRow) {
+          console.log("候选数 " + value + " 在同宫同行出现");
+          // 检查候选数是否在同宫异行的单元格出现
+          const isInBoxOtherRow = cell.row
+            .filter((v) => !cell.box.includes(v) && v !== cell.index)
+            .some((v) => this.grid[v].includes(value));
+          if (!isInBoxOtherRow) {
+            console.log(
+              `候选数 ${value} 未在同宫异行出现，则说明候选数不能出现在异宫同行的单元格中`
+            );
+            const indexs = this.getRegionByIndex(cell.index, "row")
+            indexs.filter(v => !cell.row.includes(v)).forEach(v => {
+              if (!this.filledChecker(v)) {
+                this.grid[v] = this.grid[v].filter(v => v !== value)
+              }
+            })
+          }
+
+          // 检查候选数是否在异宫同行的单元格出现
+          const isOutBoxSameRow = cell.row
+          .filter((v) => !cell.box.includes(v))
+          .some((v) => this.grid[v].includes(value));
+          if (!isOutBoxSameRow) {
+            console.log(
+              `候选数 ${value} 未在异宫同行出现，则说明候选数不能出现在同宫异行的单元格中`
+            );
+            const indexs = this.getRegionByIndex(cell.index, "box")
+            indexs.filter(v => !cell.row.includes(v)).forEach(v => {
+              if (!this.filledChecker(v)) {
+                this.grid[v] = this.grid[v].filter(v => v !== value)
+              }
+            })
+          }
+        }
+      });
+    });
+  }
 }
 
 if (typeof module === "object" && typeof module.exports === "object") {
