@@ -36,14 +36,13 @@ class Sudoku {
 
     this.checker(grid);
     this.getCandidates(grid);
-    let current = -1;
-    do {
-      current = this.nakedSingle();
-    } while (current > -1);
-    current = -1;
-    do {
-      current = this.hiddenSingle();
-    } while (current > -1);
+    // let current = -1;
+    // do {
+    //   current = this.nakedSingle();
+    //   if (current === -1) {
+    //     current = this.hiddenSingle();
+    //   }
+    // } while (current > -1);
     console.log(this.steps);
     console.log(this.grid);
   }

@@ -130,7 +130,19 @@
           if (current === -1) {
             console.log("显式唯一法：没有合适的解");
           } else {
-            console.log("显式唯一法", sudoku.steps[current]);
+            setGrid(sudoku.grid.slice());
+
+            const step = sudoku.steps[current];
+            const value = sudoku.grid[current];
+            setCurrent(value);
+            setActive(step.other);
+            console.log(
+              step.index +
+                ". " +
+                sudoku.getCellNamed(current) +
+                "单元格使用显式唯一法得到解：" +
+                value
+            );
           }
         };
         // 隐式唯一法
